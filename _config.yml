@@ -1,0 +1,24 @@
+title: 顯示器韌體開發教學
+description: 給系統廠 / ODM 顯示器韌體新人的學習路線與教學文章（AI 輔助撰寫，附參考來源）。
+lang: zh-TW
+timezone: Asia/Taipei
+url: "https://andy730309.github.io"
+baseurl: "/monitor-fw-blog"
+theme: minima
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+permalink: /posts/:year/:month/:day/:title/
+header_pages:
+  - roadmap.md
+  - about.md
+github_username: andy730309
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - scripts/

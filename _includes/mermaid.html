@@ -1,0 +1,15 @@
+{%- if page.mermaid or content contains "language-mermaid" -%}
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  // kramdown + rouge 會把 ```mermaid 轉成 <div class="language-mermaid highlighter-rouge"> 或 <code class="language-mermaid">
+  document.querySelectorAll("div.language-mermaid, pre > code.language-mermaid").forEach(function (el) {
+    var holder = el.tagName === "CODE" ? (el.closest("div.highlighter-rouge") || el.parentElement) : el;
+    var d = document.createElement("div");
+    d.className = "mermaid";
+    d.textContent = el.textContent;
+    holder.replaceWith(d);
+  });
+  mermaid.initialize({ startOnLoad: false, theme: "default" });
+  await mermaid.run({ querySelector: ".mermaid" });
+</script>
+{%- endif -%}
