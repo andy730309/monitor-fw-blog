@@ -6,7 +6,7 @@ title: 首頁
 
 給想進入系統廠 / ODM 顯示器韌體領域的新人。依學習路線由淺入深（Foundations → Practitioner → Senior → Principal）。完整路線圖見 [學習路線]({{ '/roadmap/' | relative_url }})。
 
-> 本站內容由 AI 輔助撰寫（Hermes Agent），可能有錯誤；每篇文章都附參考來源，標「（需查證）」處請以官方規格為準。
+> 本站內容由 AI 輔助撰寫（Hermes Agent），可能有錯誤；每篇文章都附參考來源，標「（待查證）」處請以官方規格為準。
 
 {% assign levels = "beginner,intermediate,advanced,expert" | split: "," %}
 {% assign level_names = "入門,中階,進階,專家" | split: "," %}

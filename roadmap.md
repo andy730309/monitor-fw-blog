@@ -5,7 +5,7 @@ permalink: /roadmap/
 ---
 
 > 給想進入系統廠 / ODM 顯示器韌體領域的新人。依學習路線由淺入深排列（Foundations → Practitioner → Senior → Principal）。
-> 每篇文章由 Hermes 研究回合自動撰寫，皆附參考來源；標「（需查證）」處請以官方規格為準。
+> 每篇文章由 Hermes 研究回合自動撰寫，皆附參考來源；標「（待查證）」處請以官方規格為準。
 
 ## Stage 1 — Foundations（基礎）
 ### 系列 A：顯示器是怎麼運作的

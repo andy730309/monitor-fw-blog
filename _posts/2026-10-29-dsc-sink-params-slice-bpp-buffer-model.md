@@ -5,8 +5,7 @@ date: 2026-10-29
 tags: [DSC, DisplayPort, DPCD, PPS, slice, bpp, buffer model, 認證]
 level: intermediate
 prerequisites: ["DPCD 入門：DisplayPort 設定資料結構與 Sink Capability 宣告", "DisplayPort link training 基礎"]
-series: "從零成為顯示器架構師"
-topic_track: A
+series: "Part 4：DisplayPort（含 DSC、eDP）"
 roadmap_stage: practitioner
 sources_checked: 2026-10-29
 spec_checked: "VESA DSC 1.2b、VESA DP 2.0、DSC Source Device Guidelines r1.0；2026-10-29 逐項核對"
@@ -20,7 +19,7 @@ difficulty: intermediate
 
 1. **收貨員的能力清單**（DPCD DSC capability，DPCD 0x060–0x06F，VESA DP 2.0 PDF p.446–453）：我一次能收幾個包裹（slice 數）、每個包裹最大多重（max slice width）、我每秒能拆幾件（peak throughput）。這份清單是收貨員自己寫的，寫太樂觀，打包員就會照單塞貨。
 2. **打包規格書**（PPS，Picture Parameter Set，128 bytes）：每個包裹怎麼切、用多少位元率（bpp）、buffer 怎麼管理，全寫在這 128 bytes 裡（VESA DSC 1.2b PDF p.54），source 透過 DP 的 PPS SDP（Secondary Data Packet）送給 sink（VESA DP 2.0 第 2.2.5.8 節 PDF p.208）。
-3. **緩衝區模型**（HRD buffer model，見 VESA HRD Buffer Model Intro）：encoder 和 decoder 各有一個 rate buffer（像倉庫暫存區），RC（Rate Control）演算法保證倉庫不會爆倉也不會斷貨。兩邊跑設定相同的 RC 演算法，QP（量化參數）決策完全同步，所以 bitstream 裡除了平坦度指示之外不傳 QP（VESA DSC 1.2b PDF p.42–43；HRD 細節見 Annex F）。
+3. 緩衝區模型（HRD buffer model，見 VESA HRD Buffer Model Intro）：encoder 和 decoder 各有一個 rate buffer（像倉庫暫存區），RC（Rate Control）演算法保證倉庫不會爆倉也不會斷貨。兩邊跑設定相同的 RC 演算法，QP（量化參數）決策完全同步，所以 bitstream 裡除了平坦度指示之外不傳 QP（VESA DSC 1.2b PDF p.42–43；HRD 細節見 Annex F）。
 
 關鍵名詞第一次出現都解釋過了，補兩個：slice 是把畫面切成大小相同的矩形區塊、各自獨立編碼的單位，一條水平線上可以有一個或多個 slice（VESA DSC 1.2b PDF p.31）；bpp（bits per pixel）是壓縮後每個像素分配到的位元數，注意它可以是分數：PPS 的 bits_per_pixel 欄位是 10 bits，其中 4 bits 是小數，最小單位 1/16 bpp，規格只允許 6.0 以上，最大值 63.9375（VESA DSC 1.2b PDF p.56）。
 
@@ -32,10 +31,10 @@ DVT 階段的 4K 144Hz DP 1.4 monitor，panel TCON 內建 DSC decoder。實驗�
 
 抓 AUX log（用 DP protocol analyzer）比對三張 GPU 的行為，找到兩個疊加的根因：
 
-**根因一：DPCD capability 寫得太樂觀。**
+根因一：DPCD capability 寫得太樂觀。
 韌體在 `DP_DSC_SLICE_CAP_1`（DPCD 0x064）把 8、10、12 slice 的 bit 都填了。這些 bit 定義在 VESA DP 2.0 Table 2-183（PDF p.448：bit 5／6／7 分別是 8／10／12 slice；其中 10 slice 不屬於標準 slice 數集合，是額外選項），公開的 Linux kernel `include/drm/display/drm_dp.h` 也有同樣定義。Source 讀到清單就有權照辦：在這個模擬情境裡，GPU C 選了 8 slice（3840 ÷ 8 = 每個 slice 480 pixel 寬），而假設的 decoder IP 在 4K144 的高 pixel clock 下，slice muxing 路徑只撐得住 4 slice。依 DP 2.0 Table 2-155，像素率 680 到 1360 MP/s 的模式，sink 至少要支援 4 slice/line（VESA DP 2.0 PDF p.348），所以只宣告到 4 slice 本來就合規。Source 在 sink 宣告範圍內、不超過最大 slice 寬度與峰值 throughput 時可以自由選 slice 數（同頁），Source 完全合法，是 sink 說謊在先。
 
-**根因二：PPS 驗證用整數 bpp 檢查分數 bpp 的世界。**
+根因二：PPS 驗證用整數 bpp 檢查分數 bpp 的世界。
 Sink FW 收到 PPS 後會 sanity check chunk_size（每個 slice 切成 chunk 傳輸的大小）。舊程式碼用「slice_width × 整數 bpp ÷ 8 無條件進位」來驗。但 bpp 是帶 4 位小數的定點數（以 1/16 為單位），source 用 8.75 bpp 時，正確的 chunk_size 是（bpp 以實際值計；VESA DSC 1.2b PDF p.57、p.64）：
 
 ```

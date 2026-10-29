@@ -5,10 +5,9 @@ date: 2026-10-28
 tags: [DDC/CI, MCCS, VCP, I2C, ddcutil, EDID, 自動化測試]
 level: beginner
 prerequisites: ["知道 HDMI/DP/VGA 線材是什麼", "會在 Linux 下指令（基本 shell）"]
-series: "系列 B：嵌入式韌體基礎"
+series: "Part 2：EDID 與周邊"
 roadmap_stage: foundations
 sources_checked: 2026-10-28
-author_note: "由安裝流程以公開來源撰寫的範例文章（非 Hermes 研究回合產出），作為之後文章的格式範本。"
 difficulty: beginner
 mermaid: true
 ---
@@ -16,23 +15,23 @@ mermaid: true
 在系統廠做顯示器韌體，你會一直碰到這個需求：「不用按 OSD 按鍵，從電腦就能改亮度、切輸入源、讀韌體版本」。
 - **產線**：校正站透過它自動寫入白平衡、切換 pattern。
 - **自動化測試**：regression 腳本用它把每個 OSD 選項都跑一遍。
-- **客戶軟體**：品牌商的桌面工具（例如調亮度、切 picture mode）、校正軟體（如 Calman 的 hardware calibration）都靠它。
-- **認證/相容性**：capabilities string 寫錯，PC 端工具就會誤判功能。
+- 客戶軟體：品牌商的桌面工具（例如調亮度、切 picture mode）、校正軟體（如 Calman 的 hardware calibration）都靠它。
+- 認證/相容性：capabilities string 寫錯，PC 端工具就會誤判功能。
 
 所以，DDC/CI 是新人最值得先學、也最容易動手的主題之一。
 
 ## 核心概念
-- **DDC（Display Data Channel）**：影像線材裡的一組 I2C 匯流排。主機（PC/GPU）透過它讀取顯示器的 **EDID**（Extended Display Identification Data，顯示器「自我介紹」的資料，通常位於 I2C 位址 0x50）。VGA 的 pin 12/15 就是 DDC 的 SDA/SCL；HDMI 也有 DDC 線；DisplayPort 則透過 **AUX channel** 以 I2C-over-AUX 方式傳送。
-- **DDC/CI（DDC Command Interface）**：VESA 定義在 DDC 之上的「雙向命令」協定，讓主機可以「下指令」給顯示器，而不只是讀 EDID。顯示器端的 DDC/CI 位址為 7-bit 0x37（寫入/讀取的 8-bit 位址分別是 0x6E/0x6F）。
-- **MCCS（Monitor Control Command Set）**：VESA 定義「有哪些指令」的字典。每個可控制的功能叫 **VCP code**（Virtual Control Panel feature code），例如：
+- DDC（Display Data Channel）：影像線材裡的一組 I2C 匯流排。主機（PC/GPU）透過它讀取顯示器的 **EDID**（Extended Display Identification Data，顯示器「自我介紹」的資料，通常位於 I2C 位址 0x50）。VGA 的 pin 12/15 就是 DDC 的 SDA/SCL；HDMI 也有 DDC 線；DisplayPort 則透過 **AUX channel** 以 I2C-over-AUX 方式傳送。
+- DDC/CI（DDC Command Interface）：VESA 定義在 DDC 之上的「雙向命令」協定，讓主機可以「下指令」給顯示器，而不只是讀 EDID。顯示器端的 DDC/CI 位址為 7-bit 0x37（寫入/讀取的 8-bit 位址分別是 0x6E/0x6F）。
+- MCCS（Monitor Control Command Set）：VESA 定義「有哪些指令」的字典。每個可控制的功能叫 VCP code（Virtual Control Panel feature code），例如：
   - `0x10` Brightness（亮度）
   - `0x12` Contrast（對比）
-  - `0x14` Select Color Preset（色溫預設；例如 `0x05` = 6500K，但各機種支援值不同）
+  - `0x14` Select Color Preset（色溫預設；6500K 對應哪個值要對照 MCCS 值表，本地規格庫沒有 MCCS 原文，待查證；各機種支援值也不同，先用 `ddcutil capabilities` 看）
   - `0x60` Input Source（輸入源）
   - `0xD6` Power Mode（電源模式）
   - `0x02` New Control Value（使用者用 OSD 改過設定的通知旗標）
-- **Capabilities string**：顯示器回報自己支援哪些 VCP 與哪些值的字串，例如 `vcp(10 12 14(01 02 04 05) 60(0F 11) ...)`。DDC/CI 1.1 規定顯示器要支援 `vcp()` 字串。
-- **Continuous vs Non-Continuous**：亮度這種有範圍（0–最大值）的叫 continuous；色溫預設這種「選項清單」叫 non-continuous。
+- Capabilities string：顯示器回報自己支援哪些 VCP 與哪些值的字串，例如 `vcp(10 12 14(01 02 04 05) 60(0F 11) ...)`。DDC/CI 1.1 規定顯示器要支援 `vcp()` 字串。
+- Continuous vs Non-Continuous：亮度這種有範圍（0–最大值）的叫 continuous；色溫預設這種「選項清單」叫 non-continuous。
 
 ## 一步一步
 以 Linux PC + 一台支援 DDC/CI 的顯示器為例（OSD 裡的「DDC/CI」選項要打開）：
@@ -61,7 +60,7 @@ mermaid: true
    ```
 5. 切色溫預設 / 輸入源（值請以 capabilities 為準）
    ```bash
-   ddcutil --display 1 setvcp 14 5      # 0x05 通常是 6500K
+   ddcutil --display 1 setvcp 14 5      # 0x05 是否為 6500K：MCCS 值表待查證，先看 capabilities
    ddcutil --display 1 getvcp 60
    ```
 6. 查 VCP 字典
@@ -93,11 +92,11 @@ ASCII 版：
 ```
 
 ## 常見陷阱
-- **OSD 裡 DDC/CI 被關掉**：很多機種預設開啟，但某些省電模式或 factory reset 後會關；`ddcutil detect` 看得到 EDID 但 DDC/CI 指令失敗。
+- OSD 裡 DDC/CI 被關掉：很多機種預設開啟，但某些省電模式或 factory reset 後會關；`ddcutil detect` 看得到 EDID 但 DDC/CI 指令失敗。
 - **太快連續下指令**：顯示器 MCU 處理需要時間，DDC/CI 規範有命令間隔要求；ddcutil 內建等待，但自己寫 I2C 腳本時要加延遲與重試。
-- **經過 dock / KVM / 轉接器**：中間的 hub 或 MST hub 可能不轉送 DDC/CI。
+- 經過 dock / KVM / 轉接器：中間的 hub 或 MST hub 可能不轉送 DDC/CI。
 - **韌體端**：OSD 與 DDC/CI 同時改同一個值的 race condition；DDC/CI 改值後 OSD 畫面沒同步；每次 setvcp 都立刻寫 flash → 磨耗（應延遲寫入）。
-- **Capabilities string 與實際不符**：寫了支援的值實際不支援，PC 工具會出錯，是常見客訴來源。
+- Capabilities string 與實際不符：寫了支援的值實際不支援，PC 工具會出錯，是常見客訴來源。
 
 ## 動手練習
 1. 用 `ddcutil detect` 與 `ddcutil capabilities` 列出你手邊顯示器支援的所有 VCP，並找出 0x14 支援哪些色溫值。
@@ -129,4 +128,4 @@ ASCII 版：
 - VESA E-EDID A2 / EDID 1.4（非官方鏡像）：https://glenwing.github.io/docs/VESA-EEDID-A2.pdf
 - VESA 免費標準下載（官方）：https://vesa.org/vesa-standards/
 - DDC/CI 封包範例（Hatteland 文件，顯示 0x6E/0x6F 位址）：https://www.hattelandtechnology.com/hubfs/pdf/documentation/ind100064-52_rev01.pdf
-- 「命令間隔」的精確毫秒數本文未列出（需查證 DDC/CI 1.1 原文）。
+- 「命令間隔」的精確毫秒數本文未列出（待查證 DDC/CI 1.1 原文）。
