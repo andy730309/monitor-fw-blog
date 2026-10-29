@@ -1,0 +1,20 @@
+<footer class="site-footer h-card">
+  <div class="wrapper">
+    <p class="footer-title">{{ site.title | escape }}</p>
+    <div class="footer-note">
+      <p><strong>內容說明：</strong>本站文章由 AI 輔助撰寫（Hermes Agent），可能有錯誤，請以官方規格為準。</p>
+      <ul>
+        <li>文中的<strong>模擬案例</strong>（假設的 log、暫存器值、客訴情境）都會明確標示「模擬」，不是真實專案資料。</li>
+        <li>SPEC 引用只寫<strong>標準名稱／版本／頁碼</strong>，不轉載規格原文；需要細節請取得原始規格。</li>
+        <li>標「（需查證）」的地方表示尚未對照原文確認。</li>
+      </ul>
+      <p class="footer-links">
+        <a href="{{ '/series/' | relative_url }}">系列目錄</a> ·
+        <a href="{{ '/tags/' | relative_url }}">標籤</a> ·
+        <a href="{{ '/feed.xml' | relative_url }}">RSS</a>
+        {%- if site.github_username %} · <a href="https://github.com/{{ site.github_username }}/monitor-fw-blog">GitHub</a>{% endif %}
+      </p>
+    </div>
+  </div>
+</footer>
+<script src="{{ '/assets/js/site.js' | relative_url }}" defer></script>

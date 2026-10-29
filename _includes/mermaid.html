@@ -9,7 +9,7 @@
     d.textContent = el.textContent;
     holder.replaceWith(d);
   });
-  mermaid.initialize({ startOnLoad: false, theme: "default" });
+  mermaid.initialize({ startOnLoad: false, theme: (document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark" ? "dark" : "default" });
   await mermaid.run({ querySelector: ".mermaid" });
 </script>
 {%- endif -%}

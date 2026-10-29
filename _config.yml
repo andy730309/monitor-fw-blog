@@ -14,7 +14,9 @@ plugins:
   - jekyll-seo-tag
 permalink: /posts/:year/:month/:day/:title/
 header_pages:
+  - series.md
   - roadmap.md
+  - tags.md
   - about.md
 github_username: andy730309
 exclude:
