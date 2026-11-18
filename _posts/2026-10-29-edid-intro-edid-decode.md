@@ -209,11 +209,11 @@ First detailed timing is the preferred timing  ← Byte 24 bit 0 (待查證實�
 | 16   | `18`    | Flags: bit 7=0 (progressive), bit 2=0 (V sync -), bit 1=1 (H sync +) |
 | 17   | `00`    | Padding |
 
-手算驗證刷新率：
+手算驗證更新率：
 - H Total = H Active + H Blanking = 3840 + 160 = 4000
 - V Total = V Active + V Blanking = 2160 + 45 = 2205
 - Pixel Clock = 533.25 MHz
-- 刷新率 = 533,250,000 / (4000 × 2205) ≈ 60.00 Hz
+- 更新率 = 533,250,000 / (4000 × 2205) ≈ 60.00 Hz
 
 > 關鍵欄位速查：
 > - `Hfront` = H Sync Offset (前廊)
@@ -400,7 +400,7 @@ cat /sys/class/drm/card0-eDP-1/edid | edid-decode --preferred-timings
 - Preferred DTD 的解析度、更新率是否符合面板規格書？
 - 是否有 CTA-861 Extension Block (Extension blocks: ≥1)？
 
-### 練習 2：手動驗證 DTD 刷新率
+### 練習 2：手動驗證 DTD 更新率
 
 取得 DTD 1 的關鍵參數：
 ```bash

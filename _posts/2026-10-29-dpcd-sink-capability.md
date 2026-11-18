@@ -16,9 +16,9 @@ mermaid: true
 
 當你把筆電插上 DisplayPort 螢幕，螢幕怎麼知道要用 4K@144Hz 還是 1080p@60Hz？Source（顯示卡）又怎麼決定用幾條 lane、多少 link rate 來傳資料？
 
-傳輸鏈路那一半的答案在 DPCD（DisplayPort Configuration Data） 裡；要傳什麼影像格式，則看 EDID／DisplayID。
+傳輸連結那一半的答案在 DPCD（DisplayPort Configuration Data） 裡；要傳什麼影像格式，則看 EDID／DisplayID。
 
-DPCD 是 DisplayPort 接收端（DPRX）透過 **AUX channel** 讓 Source 讀寫的暫存器空間，Sink 用它宣告「我能做什麼」。Source 偵測到 HPD（Hot Plug Detect）的插入事件後，會先讀 Link/Sink 狀態，鏈路不穩或新插入時再讀 Receiver Capability，接著做 link training（VESA DP 2.0 PDF p.992）。
+DPCD 是 DisplayPort 接收端（DPRX）透過 **AUX channel** 讓 Source 讀寫的暫存器空間，Sink 用它宣告「我能做什麼」。Source 偵測到 HPD（Hot Plug Detect）的插入事件後，會先讀 Link/Sink 狀態，連結不穩或新插入時再讀 Receiver Capability，接著做 link training（VESA DP 2.0 PDF p.992）。
 
 身為 Monitor FW 工程師，你必須：
 - 正確填寫 DPCD 初始值（別虛報能力，否則 link training 會失敗或畫面異常）
@@ -43,7 +43,7 @@ DPCD 是 DisplayPort 接收端（DPRX）透過 **AUX channel** 讓 Source 讀寫
   2. Link 配置（Source 寫入，也可讀回）：Source 寫入「我們用 HBR2、4 lanes、Enhanced framing」
   3. Status 回報（大多唯讀）：Link training 過程中 Sink 回報 CR done、EQ done、Symbol lock、Interlane align
 
-> 關鍵觀念：DPCD ≠ EDID。EDID 描述「支援的影像格式、色域、白點」，DPCD 描述「傳輸鏈路能力、執行中狀態」。兩者互補，缺一不可。
+> 關鍵觀念：DPCD ≠ EDID。EDID 描述「支援的影像格式、色域、白點」，DPCD 描述「傳輸連結能力、執行中狀態」。兩者互補，缺一不可。
 
 ### DPCD 位址空間大圖
 
@@ -73,9 +73,9 @@ F0000h–F02FFh  LTTPR                        ← DPCD r1.4 起有效
 依 VESA DP 2.0 第 5.1.4 節（PDF p.991–992）與第 3.5.1.2 節（PDF p.733）整理：
 
 ### 步驟 1：讀 Link/Sink Status（00200h–00205h，或 ESI 的 02002h–0200Fh）
-插入或重新插入時，Source 先讀這段確認鏈路狀態。若鏈路仍穩定（各 lane 鎖定、`INTERLANE_ALIGN_DONE` 為 1），不一定要重新 training。若收到的是 IRQ_HPD 短脈衝，Source 必須在 HPD 上升緣後 100ms 內開始讀這段（VESA DP 2.0 PDF p.991–992）。
+插入或重新插入時，Source 先讀這段確認連結狀態。若連結仍穩定（各 lane 鎖定、`INTERLANE_ALIGN_DONE` 為 1），不一定要重新 training。若收到的是 IRQ_HPD 短脈衝，Source 必須在 HPD 上升緣後 100ms 內開始讀這段（VESA DP 2.0 PDF p.991–992）。
 
-### 步驟 2：鏈路不穩或遺失 → 讀 Receiver Capability（00000h–0000Fh）
+### 步驟 2：連結不穩或遺失 → 讀 Receiver Capability（00000h–0000Fh）
 **這 16 bytes 是核心**。規格內文寫的是讀 00000h–0000Fh；同節的 HPD 事件圖則寫 00000h–0000Bh，兩處範圍不一致，實作上直接讀滿 16 bytes 最保險（VESA DP 2.0 PDF p.991–992）。Source 根據 `MAX_LINK_RATE`、`MAX_LANE_COUNT`、`ENHANCED_FRAME_CAP` 等決定 training 參數。
 
 > **實務坑點（待查證）**：網路上有討論指出 Linux kernel 曾只讀 15 bytes 而碰到 CTS 問題（見參考資料 2）。DP CTS 文件不在手邊的規格庫，CTS 條款編號與要求細節待查證。
@@ -304,13 +304,13 @@ void cmd_dpcd_dump(void) {
 ### Q1：DPCD 和 EDID 最大的差別是什麼？
 <details>
 <summary>答案</summary>
-EDID 描述「影像格式能力」（解析度、刷新率、色域、白點），在 DP 上是經 AUX 的 I²C-over-AUX 讀取；DPCD 描述「傳輸鏈路能力與狀態」（link rate、lane count、training 狀態、FEC／DSC／LTTPR），用 native AUX 讀寫。Source 插入時兩者都要讀：DPCD 決定怎麼傳，EDID／DisplayID 決定傳什麼（VESA DP 2.0 PDF p.991）。
+EDID 描述「影像格式能力」（解析度、更新率、色域、白點），在 DP 上是經 AUX 的 I²C-over-AUX 讀取；DPCD 描述「傳輸連結能力與狀態」（link rate、lane count、training 狀態、FEC／DSC／LTTPR），用 native AUX 讀寫。Source 插入時兩者都要讀：DPCD 決定怎麼傳，EDID／DisplayID 決定傳什麼（VESA DP 2.0 PDF p.991）。
 </details>
 
 ### Q2：Source 插入後要讀 Receiver Capability 的哪個範圍？
 <details>
 <summary>答案</summary>
-規格內文要求在鏈路不穩或遺失時讀 00000h–0000Fh（16 bytes），再開始 link training；同節的 HPD 事件圖寫 00000h–0000Bh，兩處不一致，實作上讀滿 16 bytes（VESA DP 2.0 PDF p.991–992）。若 0000Eh bit 7＝1，還要讀 02200h 起的延伸區塊（VESA DP 2.0 PDF p.733）。DP CTS 的對應條款與 Linux kernel 只讀 15 bytes 的事件，手邊規格無法驗證，待查證。
+規格內文要求在連結不穩或遺失時讀 00000h–0000Fh（16 bytes），再開始 link training；同節的 HPD 事件圖寫 00000h–0000Bh，兩處不一致，實作上讀滿 16 bytes（VESA DP 2.0 PDF p.991–992）。若 0000Eh bit 7＝1，還要讀 02200h 起的延伸區塊（VESA DP 2.0 PDF p.733）。DP CTS 的對應條款與 Linux kernel 只讀 15 bytes 的事件，手邊規格無法驗證，待查證。
 </details>
 
 ### Q3：一般 monitor 的 ADAPTER_CAP（0000Fh）應該怎麼填？

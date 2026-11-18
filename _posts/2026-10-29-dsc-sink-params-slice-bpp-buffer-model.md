@@ -13,7 +13,7 @@ difficulty: intermediate
 ---
 ## 【前置知識準備】
 
-先講清楚 DSC 是什麼。DSC（Display Stream Compression，VESA 的顯示串流壓縮標準）是一種「視覺無損（visually lossless）」的壓縮：一般人在一般觀看條件下，看不出壓縮前後的差別。規格把「視覺無損」定義為人眼看不出壓縮重建前後差異（VESA DSC 1.2b PDF p.26）。典型壓縮比在 1：1 到約 3：1 之間（DisplayPort FAQ，規格本身沒有寫這個範圍）。為什麼需要它？因為 4K 144Hz、8K 60Hz 這種模式，未壓縮的資料量超過 DP 1.4 link 的承載能力，不壓縮就只能降刷新率或降色深。
+先講清楚 DSC 是什麼。DSC（Display Stream Compression，VESA 的顯示串流壓縮標準）是一種「視覺無損（visually lossless）」的壓縮：一般人在一般觀看條件下，看不出壓縮前後的差別。規格把「視覺無損」定義為人眼看不出壓縮重建前後差異（VESA DSC 1.2b PDF p.26）。典型壓縮比在 1：1 到約 3：1 之間（DisplayPort FAQ，規格本身沒有寫這個範圍）。為什麼需要它？因為 4K 144Hz、8K 60Hz 這種模式，未壓縮的資料量超過 DP 1.4 link 的承載能力，不壓縮就只能降更新率或降色深。
 
 用一個工程類比：DSC 就像貨運打包。Source（顯卡）是打包員，sink（螢幕）是收貨員。兩邊要對三件事有共識：
 

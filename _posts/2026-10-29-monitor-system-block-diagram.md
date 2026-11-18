@@ -60,7 +60,7 @@ Video Input → Scaling → CSC/Range → Gamma/LUT → HDR Tone Map → Sharpne
 ### 3. 面板介面傳輸：Scaler → T-CON
 - 依 Panel 規格選介面：
   - eDP (Embedded DisplayPort)：筆電/高階監視器主流，1~4 lanes，HBR1/2/3。
-  - V-by-One HS：大尺寸/高刷新率，單通道高達 4 Gbps。
+  - V-by-One HS：大尺寸/高更新率，單通道高達 4 Gbps。
   - LVDS：舊款/低階，雙通道 8/10-bit。
 - Scaler 端 Tx、T-CON 端 Rx，中間走差分線對。
 
