@@ -7,7 +7,7 @@ level: beginner
 prerequisites: ["基本電腦硬體概念", "了解什麼是解析度、更新率、色深"]
 series: "Part 0：整機全貌"
 roadmap_stage: foundations
-sources_checked: 2026-10-29
+sources_checked: 2026-11-19
 description: "一次釐清 VGA、DVI、HDMI、DisplayPort、USB-C 五大影像介面的演進與差異，學會算頻寬，建立顯示器韌體的介面地圖。"
 seo_title: "影像介面總覽：VGA、DVI、HDMI、DP、USB-C"
 faq:
@@ -204,7 +204,7 @@ graph TD
 | 2 | 「USB-C 插上去就能傳 4K@60」 | 要看 Pin Assignment (C/D/E)、host 是否支援 DP 1.4 HBR3、cable 是否為全功能 (Gen 2/Gen 1)、sink 端 DPCD capability |
 | 3 | 「DP 1.4 有 DSC 就能跑 8K@60」 | DSC 是選項，且需 slice count、bpp、buffer model 正確設定；若 sink 不支援 DSC 或參數不符，link training 會失敗或 fallback 到較低解析度 |
 | 4 | 「DP++ passive adapter 接在 USB-C→DP adapter 後面能轉 HDMI」 | USB-C Alt Mode 明文禁止 DP++，passive DP→HDMI 在此拓樸一定失效，必須用 active converter (含轉換晶片) |
-| 5 | 「Monitor 只要支援 PD 就能充電筆電」 | Monitor 必須實作 PD Source (UFP) 角色，且 VBUS 功率預算要夠 (如 65W/90W/140W)；還要處理 Role Swap、DR Swap、PR Swap 狀態機 |
+| 5 | 「Monitor 只要支援 PD 就能充電筆電」 | 要充電給筆電，監視器得能當 PD Source，且 VBUS 功率預算要夠（例如 65W／90W／140W）。同時收 DP Alt Mode 時，資料角色應是 UFP。電源與資料角色分開，到達 Source + UFP 時，雙角色產品應依初始角色發出需要的 PR_Swap 或 DR_Swap（USB Type-C R2.5 Table 4-14，PDF p.170），不是兩種每次都必須執行。只支援 PD Sink、不反向供電的機種，不能給筆電充電。 |
 | 6 | 「EDID 只要複製參考設計就好」 | 每個輸入 port 都要獨立 EDID (HDMI 需 CTA-861 HF-VSDB、DP 需 DPCD capability 一致)；複製錯誤會導致 host 端無法正確識別支援模式 |
 | 7 | 「VRR 開啟後畫面閃爍是 panel 問題」 | 可能是 VRR 範圍 (VRR min/max Hz) 與 panel 支援不符、或 LFC (Low Framerate Compensation) 邏輯錯誤、或 variable overdrive table 缺失 |
 
@@ -310,3 +310,4 @@ Q5: 你的監看器支援 USB-C DP Alt Mode Pin Assignment D，同時連接筆�
 12. VESA DP Marketing Guidelines v1a — https://www.vesa.org/wp-content/uploads/2016/04/DP-Marketing-Guidelines-v1a.pdf
 
 > **註記：**標註「待查證」的細節 (如 HDMI 2.2 FRL 速率表、DP 2.1a CDF 結構、PD 3.2 AVS 時序) 來自公開新聞稿/簡報，完整規格需向 VESA/HDMI LA/USB-IF 取得官方文件。實際帶專案時請以最新正式規格書為準。
+13. USB Type-C Cable and Connector Specification Release 2.5（2026-03；§4.5.1.4.2、Table 4-13，PDF p.169；Table 4-14，PDF p.170）

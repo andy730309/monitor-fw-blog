@@ -7,7 +7,7 @@ level: beginner
 prerequisites: ["基本電子電路觀念（電壓、電流、訊號）", "知道什麼是 HDMI/DisplayPort/USB-C"]
 series: "Part 0：整機全貌"
 roadmap_stage: foundations
-sources_checked: 2026-10-29
+sources_checked: 2026-11-19
 description: "顯示器裡的 Scaler、T-CON、Panel、背光、USB-C PD 與 USB Hub 各自負責什麼？本文用系統方塊圖說明分工與訊號路徑。"
 seo_title: "顯示器系統方塊圖：Scaler、T-CON、Panel 怎麼分工"
 faq:
@@ -101,8 +101,9 @@ Video Input → Scaling → CSC/Range → Gamma/LUT → HDR Tone Map → Sharpne
                                       ▼
                               [I²C/SMBus → Scaler MCU]
 ```
-- Monitor 扮演 PD Source (DFP) 供電給 Notebook （EPR 最高 240W，USB PD R3.2 V1.2 PDF p.30；實際能給多少看整機電源預算）。
-- 同時扮演 UFP 接收 Notebook 的 DP Alt Mode 訊號。
+- 若監視器要給筆電充電，偏好的電源角色是 PD Source，輸出 VBUS（EPR 上限 240W，USB PD R3.2 V1.2 PDF p.30；實際能給多少看整機電源預算）。電源角色（Source／Sink）與資料角色（DFP／UFP）是兩件事，Source 不等於 DFP。
+- 同時，收筆電的 DP Alt Mode 時，資料角色應是 UFP。也就是常見目標組合是 Source + UFP，不是 Source + DFP。
+- 要到達這個組合時，雙角色且支援 USB PD 的產品「應該」（should）依初始角色發出需要的 Swap：例如一開始已是 Sink／UFP，發 PR_Swap 即可；一開始是 Source／DFP，發 DR_Swap 即可（USB Type-C Cable and Connector Specification R2.5，2026-03，§4.5.1.4.2、Table 4-13，PDF p.169；Table 4-14，PDF p.170）。不是每次連線都必須兩種 Swap 都做。只收影像、不反向供電的 USB-C 顯示器，也不必實作這些 Swap。
 - PD Controller 獨立處理 PD 協商，再透過 I²C 告訴 Scaler：「現在契約是 20V/5A、已進入 DP Alt Mode、Pin Assignment C、4-lane DP」。
 - Scaler 據此啟用 DP Rx、切換 MUX、通知 Hub 上游連線。
 
@@ -288,8 +289,8 @@ Q1. Scaler 和 T-CON 最大的分工差別是什麼？
 Q2. 為什麼 LCD 需要 Backlight 而 OLED 不需要？
 > LCD 的液晶本身不發光，只能控制「通光/遮光」，必須要有背光模組提供光源；OLED 每個次像素都是自發光二極體，電流通過即發光，不需額外背光。
 
-Q3. USB-C 監視器同時要「充電給筆電」又要「收筆電的 DP 訊號」，這在 PD 角色上叫什麼？
-> 監視器扮演 PD Source (DFP, Downstream Facing Port) 輸出 VBUS 供電；同時在資料角色上扮演 UFP (Upstream Facing Port) 接收 DP Alt Mode。這需要 Power Role Swap (PR_Swap) 和 Data Role Swap (DR_Swap) 協商。
+Q3. USB-C 監視器同時要「充電給筆電」又要「收筆電的 DP 訊號」，電源與資料角色分別是什麼？一定要做 PR_Swap 和 DR_Swap 嗎？
+> 電源角色是 PD Source（輸出 VBUS），資料角色是 UFP（接收 DP Alt Mode）。Source 不是 DFP：Type-C 規格把電源角色與資料角色分開，PR_Swap 只換 Source／Sink，DR_Swap 只換 DFP／UFP（USB Type-C R2.5 §4.5.1.4.2、Table 4-13，PDF p.169）。要到達 Source + UFP 這個偏好組合時，雙角色產品「應該」（should）依初始角色發出需要的 Swap：例如一開始已是 Sink／UFP，發 PR_Swap 即可；一開始是 Source／DFP，發 DR_Swap 即可（Table 4-14，PDF p.170）。不是每次連線都必須兩種 Swap 都做；只收影像、不反向供電的 USB-C 顯示器也不必實作這些 Swap。
 
 Q4. Local Dimming 的 zone brightness data 通常怎麼從 Scaler 傳到 Backlight Driver？
 > 透過 **SPI 或 I²C** (或專用高速介面) 傳送 zone 亮度陣列；Driver 內部 MCU 接收後轉換成各通道 LED 電流，並執行保護/平滑/熱補償。
@@ -322,5 +323,7 @@ Q5. 什麼是 PSR (Panel Self-Refresh)？它省在哪裡？
    V-by-One HS 介面架構、訊號定義 (DE/Hsync/Vsync)、優於 LVDS 的速率/線徑優勢。
 
 7. **USPTO 專利文件** (US20150077408, US20070229434, US12688834) — LVDS/V-by-One/eDP 介面在系統中的連接拓樸、Panel ID 讀取路徑 (eDP AUX / I²C)、Backlight 控制架構。
+
+8. USB Type-C Cable and Connector Specification Release 2.5（2026-03；§4.5.1.4.2、Table 4-13，PDF p.169；Table 4-14，PDF p.170）
 
 > 註：Scaler/TCON/Panel 具體 register map、timing 參數、PD Controller FW API 屬 NDA 範圍，僅依公開資料整理架構概念；實際開發需對照晶片廠 SDK 文件與 Panel Spec。

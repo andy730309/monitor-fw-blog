@@ -8,7 +8,7 @@ prerequisites: ["DDC/CI 與 MCCS 入門：用 ddcutil 控制顯示器", "產線�
 series: "從零成為顯示器架構師"
 topic_track: C
 roadmap_stage: practitioner
-sources_checked: 2026-11-04
+sources_checked: 2026-11-19
 description: "白平衡校正站重測率飆高？用 Python 同步 Chroma 2238 與 CA-410，並修正 DDC/CI 寫入時序，打造可靠的閉迴路校正。"
 seo_title: "Chroma 2238 與 CA-410 雙儀器同步校正指南"
 difficulty: intermediate
@@ -22,9 +22,9 @@ difficulty: intermediate
 新手需先懂幾個概念：
 
 - **DDC/CI**：透過 I2C 匯流排從電腦讀寫監視器的 VCP（Virtual Control Panel，虛擬控制面板）。DDC/CI 的 I2C 位址為 0x37，EDID 則是 0x50（已查證：ddcutil 文件、MCCS 公開定義）。
-- **MCCS VCP 代碼**：監視器可控制的功能代碼，例如 0x10 是亮度、0x14 是色溫、0x62 是白平衡/RGB gain（視廠商實作而定；已查證：MCCS 公開定義、ddcutil capabilities 輸出）。
+- **MCCS VCP 代碼**：監視器可控制的功能代碼，例如 0x10 是亮度、0x14 是色溫預設（Select Color Preset）。白平衡該用的 RGB gain 是 16h、18h、1Ah（Video Gain (Drive): Red／Green／Blue；MCCS 2.2a 總覽 PDF p.27，Table 8-4 定義 PDF p.39）。0x62 在標準裡是 Audio: Speaker Volume（喇叭音量，Table 8-15，PDF p.90），不是白平衡。部分 scaler SDK 把 0x62 實作成私有白平衡碼，不能當成標準用法。
 - **setvcp 與 getvcp**：setvcp 是寫入設定值，getvcp 是讀回當前值。重要陷阱：setvcp 收到 I2C ACK 只代表匯流排層收到命令，不代表 scaler 已將新 gain 寫入影像管線（已查證：ddcutil 文件）。
-- **Chroma 2238**：訊號產生器。公開手冊列出的遠端命令是自家 ASCII 字串（例如 `RUN TIM`、`RUN PTN`，結尾用分號），不是 SCPI；儀器收到命令會先檢查參數，執行正常回 `OK;`，否則回 `NG;` 加錯誤說明（Chroma 2238 User's Manual §3.2，PDF p.65）。手冊沒有列出 `*IDN?`、`*OPC?` 這類 SCPI 查詢命令；回應的實際位元組（是否帶 CR/LF）待查證。
+- **Chroma 2238**：訊號產生器。公開手冊列出的遠端命令是自家 ASCII 字串（例如 `RUN TIM`、`RUN PTN`），不是 SCPI。命令的結束字元是分號（`;`）；標記與參數之間可用空白、逗號、CR（0DH）或 LF（0AH）分隔，讓命令較好讀（Chroma 2238 User's Manual §3.2，PDF p.65，印刷頁 3-1）。儀器收到命令會先檢查參數，執行正常回 `OK;`，否則回 `NG;` 加錯誤說明（同節舉例為 `NG; BOUNDARY ERROR:`）。手冊沒有列出 `*IDN?`、`*OPC?` 這類 SCPI 查詢命令。回應例子以分號結尾，但手冊未寫回應後面是否再帶 CR／LF，這點仍待查證。
 - **CA-410**：Konica Minolta 彩度計，通訊協定為廠商專屬（KM CA-SDK2 或通訊規格，授權條款；待查證：Konica Minolta 公開文件）。
 - **I2C-dev**：Linux 核心將 I2C 匯流排暴露為 `/dev/i2c-n` 節點，userspace 程式可透過它讀寫 DDC/CI（已查證：Linux kernel I2C/SMBus 文件）。
 
@@ -44,7 +44,7 @@ difficulty: intermediate
 
 **Gate 1 — DDC/CI 心跳**：每次迭代前先確認 DUT 仍在線，避免對斷線的監視器寫入 gain。
 
-**Gate 2 — DDC/CI setvcp + settle**：寫入 RGB gain（VCP 0x62）後，固定等待 40–200 ms（依亮度分檔；已查證：ddcutil 建議），再以 getvcp 讀回驗證。若讀回值與設定值不符，重試。
+**Gate 2 — DDC/CI setvcp + settle**：寫入 RGB gain（VCP 16h、18h、1Ah）後，固定等待 40–200 ms（依亮度分檔；已查證：ddcutil 建議），再以 getvcp 讀回驗證。若讀回值與設定值不符，重試。
 
 **Gate 3 — Chroma 切換圖案**：發送 `RUN PTN` 後讀 2238 的回應，收到 `NG;` 或逾時就中止（手冊 §3.2，PDF p.65）。收到 `OK;` 只代表儀器已執行換圖命令，DUT 是否穩定仍由 DDC/CI 心跳與量測收斂 gate 判斷。
 
@@ -59,10 +59,13 @@ difficulty: intermediate
 I2C_ADDR_DDC_CI = 0x37
 I2C_ADDR_EDID   = 0x50
 
-# MCCS VCP 代碼：已查證（MCCS 公開定義）
+# MCCS VCP 代碼：已查證（MCCS 2.2a Table 8-4，PDF p.39；
+# 0x62 是喇叭音量，不是白平衡，Table 8-15，PDF p.90）
 VCP_BRIGHTNESS  = 0x10
 VCP_COLOR_TEMP  = 0x14
-VCP_WHITE_BALANCE = 0x62
+VCP_GAIN_RED    = 0x16
+VCP_GAIN_GREEN  = 0x18
+VCP_GAIN_BLUE   = 0x1A
 
 # DDC/CI 等待：已查證（ddcutil 文件，40–200 ms）
 DDC_CI_SET_WAIT_MS = 80
@@ -102,6 +105,7 @@ class DdcCiClient:
 4. **多 DUT 並行要綁實體位址**：--bus/--sn 綁定 I2C 匯流排與序號，避免 ttyUSB 漂移與儀器串台。
 5. **校正完別忘了 Save Current Settings**：gain 不持久化至 NVRAM，斷電後就遺失，客戶開機見偏色。
 6. **非公開晶片暫存器一律標註示意**：Scaler FW 內部地址若非出自公開 datasheet，必須在註解寫 `/* 示意地址，非實際晶片規格 */`，絕不宣稱是真實 RTD/Novatek/MStar 規格。
+7. **不要把 VCP 0x62 當成白平衡 gain**：MCCS 2.2a 裡 0x62 是喇叭音量（Table 8-15，PDF p.90）。白平衡應寫 16h、18h、1Ah 的 RGB gain（Table 8-4，PDF p.39）。部分 scaler SDK 的私有用法，不能拿到標準工具上用。
 
 ## 思考題
 
@@ -119,6 +123,7 @@ setvcp 的 I2C ACK 只表示匯流排層收到命令，scaler 需要時間將新
 3. Chroma ATE 官方網站（Video & Color Test Solutions、訊號產生器產品頁，官方）：https://www.chromaate.com/
 4. ddcutil GitHub 官方儲存庫（DDC/CI 與 MCCS VCP 代碼、I2C 位址 0x37/0x50，官方）：https://github.com/rockowitz/ddcutil
 5. ddcutil 官方文件網站（DDC/CI 40–200 ms 等待語意、setvcp/getvcp 行為、MCCS VCP 定義，官方）：https://www.ddcutil.com/
-6. Chroma ATE，Video Pattern Generator 2238 User's Manual（§3.2 命令格式與 OK/NG 回應，PDF p.65；§3.2.2 General Commands `RUN TIM`／`RUN PTN`，PDF p.66；PDF 由代理商網站公開）：https://www.acquisys.fr/wp-content/uploads/2018/06/en_2238_usermanual_1709rv.pdf
+6. Chroma ATE，Video Pattern Generator 2238 User's Manual（§3.2 命令格式、結束字元為分號、分隔字元含 CR／LF，以及 OK／NG 回應，PDF p.65，印刷頁 3-1；§3.2.2 General Commands `RUN TIM`／`RUN PTN`，PDF p.66，印刷頁 3-2；PDF 由代理商網站公開）：https://www.acquisys.fr/wp-content/uploads/2018/06/en_2238_usermanual_1709rv.pdf
+7. VESA，Monitor Control Command Set (MCCS) Standard Version 2.2a（2011-01-13；Video Gain 16h／18h／1Ah 總覽 PDF p.27、Table 8-4 定義 PDF p.39；Audio: Speaker Volume 62h，Table 8-15，PDF p.90）
 
 > 說明：CA-410 通訊規格與 Chroma 2238 完整命令集為廠商專屬文件，須取得 Konica Minolta 與 Chroma 授權文件後補充；本文未涉及 NDA 內容，讀者請對照手上的 NDA 規格。

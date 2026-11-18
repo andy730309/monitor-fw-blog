@@ -7,7 +7,7 @@ level: beginner
 prerequisites: []
 series: "Part 0：整機全貌"
 roadmap_stage: foundations
-sources_checked: 2026-10-29
+sources_checked: 2026-11-19
 description: "系統廠／ODM 的顯示器韌體工程師做什麼？依 EVT、DVT、PVT、MP 四個階段，說明每天的工作內容、合作對象與常見陷阱。"
 faq:
   - q: "系統廠/ODM 韌體工程師與 IC 設計廠韌體工程師最大的差別是什麼？"
@@ -48,7 +48,7 @@ mermaid: true
 | EVT/DVT/PVT/MP | Engineering/Design/Production Validation Test / Mass Production，四大驗證階段 |
 | EDID (Extended Display Identification Data) | 顯示器的「身分證」，告訴來源端（GPU/Console）支援哪些解析度、更新率、色彩格式 |
 | DDC/CI (Display Data Channel / Command Interface) | 透過 I²C 讓電腦讀寫顯示器設定（亮度、輸入源、色溫等）的協定 |
-| Link Training | DP/HDMI 高速串列介面建立連線的過程，包含時鐘恢復、均衡化、符號鎖定等步驟 |
+| Link Training | DP／HDMI 高速串列介面建立連線的過程。DP 的 8b/10b（DP 1.4 所用）先做時鐘恢復，再做通道等化；符號鎖定與跨 lane 對齊是等化結束時須達到的結果 |
 | Factory Calibration | 產線上用色度計/光譜儀量測並寫入 Gamma、白平衡、3D LUT 等校正參數 |
 
 ---
@@ -213,8 +213,8 @@ Q2: EVT、DVT、PVT、MP 四階段中，哪一階段最適合建立自動化測�
 Q3: 顯示器韌體工程師需要會示波器操作嗎？關鍵量測項目有哪些？
 > A: 需要。關鍵量測：power sequence（各電壓軌上電順序/斜率）、HPD 脈衝寬度/時機、PWM 頻率/占空比、DP/HDMI eye diagram、panel VCC/VEE 時序、backlight enable 延遲。
 
-Q4: 什麼是 Link Training？DP 1.4 (8b/10b) 的四個階段為何？
-> A: Link Training 是高速串列介面建立可靠連線的過程。DP 1.4 四階段：Clock Recovery (CR) → Equalization (EQ) → Symbol Lock → Inter-lane Alignment。
+Q4: 什麼是 Link Training？DP 1.4（8b/10b）的訓練過程分成幾個階段？
+> A: Link Training 是來源端與接收端建立可靠高速連線的過程。DP 的 8b/10b（DP 1.4 所用）把訓練寫成兩個須依序完成的工作：先做 Clock Recovery（時鐘恢復），再做 Channel Equalization（通道等化）；符號鎖定與跨 lane 對齊是等化這段結束時必須達到的結果，不是另外兩個獨立階段（VESA DP 2.0 §3.5.1.2，PDF p.733；DP 1.4 d1 草案 §3.5.1.2，PDF p.592，文字結構相同）。另外還有可選的 Post-Link Training Adjust Request（POST_LT_ADJ_REQ）序列（DP 2.0 §3.5.1.2.5，PDF p.754）。本地沒有 DP 1.4 最終版，以上以 DP 2.0 的 8b/10b 章節交叉確認。
 
 Q5: Factory Calibration 站通常包含哪些關鍵步驟？
 > A: 1) 燒錄 FW/EDID/序號 2) 暖機 3) 量測原生 Gamma/白平衡/色域 4) 計算並寫入校正參數 5) 量測驗證 ΔE 6) 燒錄 Uniformity/LUT（若支援）7) 最終功能測試 8) 標籤列印/追溯資料上傳 MES。
@@ -238,3 +238,5 @@ Q5: Factory Calibration 站通常包含哪些關鍵步驟？
 12. OnLogic - "EVT, DVT, and PVT: Product Development Stages Explained" - https://www.onlogic.com/blog/evt-dvt-and-pvt-product-development-stages-explained
 13. Granite River Labs - "顯示器的身份證– EDID 是什麼？" - https://www.graniteriverlabs.com/zh-tw/technical-blog/edid-overview
 14. PTT Tech_Job 版 / Dcard 科技業版 - 瑞昱/聯詠/慧榮 Display 韌體工程師面試心得與工作內容討論（業界現況參考）
+15. VESA DisplayPort (DP) Standard Version 2.0（2019-10-26；§3.5.1.2 8b/10b Link Training，PDF p.733；§3.5.1.2.5 POST_LT_ADJ_REQ，PDF p.754）
+16. VESA Proposed DisplayPort (DP) Standard Version 1.4 d1（2015-11-03，草案、非最終版；§3.5.1.2 Link Training，PDF p.592；與 DP 2.0 的 8b/10b 章節交叉確認）
