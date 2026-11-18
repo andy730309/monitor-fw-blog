@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-04
+description: "HDR10 預測試全綠，開 Dolby Vision 卻洗白？說明動態 metadata 與 static metadata 的差別，以及韌體的模式管理。"
+seo_title: "Dolby Vision 一開就洗白？動態 metadata 與模式"
 difficulty: intermediate
 ---
+> **重點摘要**：HDR10 用整部片共用的 static metadata，Dolby Vision 則是逐場景的動態 metadata 加上 display management。Dolby Vision 送來的仍是 PQ 影像，多出來的是每個場景該怎麼映射的資訊。韌體的工作是把這份 metadata 接進 pipeline，並管好模式的進出。
+
 ## 前置知識
 
 先講一個類比。HDR10 的 static metadata 像是攝影師把「這部片最亮到 1,000 nits、平均亮度多少」寫在一張紙上，貼在影片卷盒外面；你的螢幕拿到卷盒，看一眼紙，就用同一套曲線從頭播到尾。Dolby Vision 則是攝影師跟著片子走進你家客廳，每換一個場景就現場看一眼你的電視能多亮、對比多少，然後當場重新調光。這就是「動態（scene-based）metadata」與「display management」的差別。

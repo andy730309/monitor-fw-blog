@@ -8,9 +8,23 @@ prerequisites: ["知道 HDMI/DP/VGA 線材是什麼", "會在 Linux 下指令（
 series: "Part 2：EDID 與周邊"
 roadmap_stage: foundations
 sources_checked: 2026-10-28
+description: "DDC/CI 讓電腦不按 OSD 就能改亮度、切輸入源、讀韌體版本。本文用 ddcutil 帶新人動手讀寫 MCCS VCP，入門顯示器控制。"
+faq:
+  - q: "EDID 與 DDC/CI 的 I2C 位址分別是多少？"
+    a: "EDID 在 0x50；DDC/CI 在 7-bit 0x37（8-bit 寫/讀 0x6E/0x6F）。"
+  - q: "MCCS 中 VCP 0x10、0x60 分別代表什麼？"
+    a: "0x10 = Brightness；0x60 = Input Source。"
+  - q: "DisplayPort 沒有獨立的 DDC 線，EDID 與 DDC/CI 怎麼傳？"
+    a: "透過 AUX channel 以 I2C-over-AUX 傳送。"
+  - q: "為什麼韌體不應該在每次收到 Set VCP 就立刻寫 flash？"
+    a: "Flash 有寫入次數限制，連續調整會大量寫入；應用 dirty flag + 延遲寫入，並注意斷電保護。"
+  - q: "Capabilities string 的用途是什麼？"
+    a: "讓主機知道顯示器支援哪些 VCP code 與哪些值，避免下達不支援的指令。"
 difficulty: beginner
 mermaid: true
 ---
+> **重點摘要**：DDC/CI 是主機透過 I2C 控制顯示器的協定，MCCS 定義了可讀寫的 VCP 功能代碼。產線校正、自動化測試與品牌商的桌面工具都靠它。本文以 Linux PC 搭配 ddcutil，一步步示範偵測螢幕、讀 capabilities 與讀寫 VCP。
+
 ## 為什麼重要
 在系統廠做顯示器韌體，你會一直碰到這個需求：「不用按 OSD 按鍵，從電腦就能改亮度、切輸入源、讀韌體版本」。
 - **產線**：校正站透過它自動寫入白平衡、切換 pattern。

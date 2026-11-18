@@ -9,9 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: C
 roadmap_stage: practitioner
 sources_checked: 2026-10-31
+description: "夜間 DDC/CI regression 卡住，常因腳本把 ddcutil 當同步 RPC。本文說明等待語意、Null Message 與 setvcp 驗證。"
+seo_title: "DDC/CI regression 卡 92%？ddcutil 不是同步 RPC"
 difficulty: intermediate
 ---
-# BLOG 標題：夜間 DDC/CI regression 卡在 92%：你的腳本把 ddcutil 當同步 RPC 在用
+> **重點摘要**：DDC/CI 規定 host 送出命令後要等 40–200 ms 再讀回應，Null Message 也可能代表「還沒好」或「不支援」。setvcp 只有 I2C 層的確認，切輸入源這類功能立刻讀回會失敗。腳本要把 ddcutil 當成有等待語意的慢速匯流排，每次讀回確認前都留 settle delay。
 
 ## 【前置知識準備】
 

@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: C
 roadmap_stage: practitioner
 sources_checked: 2026-11-03
+description: "Chroma 2238 回了 OK，量到的卻是上一張圖？依公開手冊拆解遠端控制與 test pattern 自動化的四個時序坑。"
+seo_title: "Chroma 2238 回 OK 卻量到上一張圖？四個時序坑"
 difficulty: intermediate
 ---
+> **重點摘要**：Chroma 2238 公開手冊列出的是自家 ASCII 命令，例如 RUN TIM、RUN PTN，執行正常回 OK;，否則回 NG;，但沒有 SCPI 的查詢命令。收到 OK; 只代表儀器執行了命令，不代表 DUT 畫面已經穩定。本文用三個 gate 把就緒變成可觀測的條件，不靠固定的等待時間。
+
 自動化測試台最貴的錯誤，不是儀器壞掉，而是「程式以為成功」。訊號產生器收到一行命令、回了 OK、腳本繼續跑，量測結果也存進資料庫；三天後看趨勢圖才發現，某一批 sample 量的其實是上一張測試圖。這篇從 Chroma 2238 的公開手冊出發，拆解遠端控制與 test pattern 自動化最容易踩的四個時序坑，並給一套不靠 magic sleep 的寫法。
 
 ## 前置知識

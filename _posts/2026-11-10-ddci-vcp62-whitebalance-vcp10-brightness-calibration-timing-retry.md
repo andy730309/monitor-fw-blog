@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: C
 roadmap_stage: practitioner
 sources_checked: 2026-11-10
+description: "VCP 0x62 在 MCCS 標準裡是喇叭音量，不是白平衡。本文說明白平衡正確的 VCP 碼，以及校正腳本的時序、重試與超時。"
+seo_title: "VCP 0x62 是喇叭音量：白平衡校正時序與重試"
 difficulty: intermediate
 ---
+> **重點摘要**：VCP 0x62 在 MCCS 2.2a 是 Audio speaker volume，不是白平衡 gain。白平衡的標準路徑是 16h、18h、1Ah 的 RGB gain 與 6Ch、6Eh、70h 的 black level。寫入時要依規格等待、設定重試次數，並分辨 Null Message 的意義，避免假成功。
+
 校正站的腳本照著 scaler SDK 的文件寫，用 DDC/CI 的 VCP 0x62 當白平衡 gain，跑了幾個月都沒事，直到品牌客戶拿 ddcutil 來驗收，才發現這個碼在標準裡根本不是白平衡——是喇叭音量。這篇要講清楚三件事：0x62 的標準語意到底是什麼、白平衡的正確寫法走哪幾個碼、以及校正腳本的重試與超時該怎麼設計才不會假成功。
 
 ## 前置知識

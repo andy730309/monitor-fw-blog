@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: practitioner
 sources_checked: 2026-11-03
+description: "螢幕用 USB-C 充筆電十幾秒就斷？拆解 USB PD 3.2 EPR 的線材檢查、EPR_KeepAlive 與 monitor 共用電源的功率預算。"
+seo_title: "螢幕充筆電會斷？USB PD 3.2 EPR 三個坑"
 difficulty: intermediate
 ---
+> **重點摘要**：EPR 把 USB PD 的上限從 100W 拉到 240W，但進入 EPR 前要確認對方宣告 EPR Mode Capable、線材 e-marker 能承受，進入後 sink 還要定期送 EPR_KeepAlive。螢幕的 panel、scaler 與 hub 和筆電共用同一個電源。PDO 不能直接照 adapter 銘牌宣告。
+
 ## 前置知識
 
 把 USB PD 想成螢幕和筆電在談一筆用電合約。SPR（Standard Power Range）是大家熟悉的舊合約，最高 100W，用 20V/5A 跑。EPR（Extended Power Range）是把上限拉到 240W 的新合約，多了 28V、36V、48V 三個固定檔，各自對應 140W、180W、240W（USB-IF charger page）。

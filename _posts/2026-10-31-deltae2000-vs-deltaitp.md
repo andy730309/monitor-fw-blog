@@ -9,9 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-10-31
+description: "SDR 用 ΔE00，HDR 用 ΔITP，兩者不能互比也不能換算。本文說明兩種色差公式的差異，以及實作 BT.2124 時常見的錯誤。"
+seo_title: "ΔE2000 與 ΔITP 為何不能混用？SDR／HDR 色差"
 difficulty: intermediate
 ---
-# BLOG 標題：SDR 校正 ΔE00 全綠，HDR 預測試卻 fail？ΔE2000 與 ΔITP 你不能混用的原因
+> **重點摘要**：SDR 用 ΔE00，HDR 用 ΔITP，這兩個數字不能互相比較，也不能互相換算。ΔE00 在相對的 CIELAB 空間計算，HDR 的 PQ 則是絕對亮度，沿用 ΔE00 會讓暗部誤差被壓縮。驗收規格要分開列兩種指標，色差公式上線前先用公開 test data 驗證。
 
 ## 【前置知識準備】
 

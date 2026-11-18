@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-02
+description: "Mini-LED 暗場字幕出現光暈，多半是韌體背光 duty 算錯、LCD 端沒補償。本文拆解 zone duty 演算法與 halo 抑制。"
+seo_title: "Mini-LED 暗場光暈：local dimming duty 演算法"
 difficulty: intermediate
 ---
+> **重點摘要**：Local dimming 的 halo 大多是韌體把背光 duty 算錯、LCD 端又沒補償造成，不一定是面板漏光。zone duty 不要只取最大值，亮區要考慮 BLU 的光學擴散外擴，duty 拉亮幾倍，LCD 像素就要除以幾倍。時間平滑與提交時序則決定字幕會不會閃爍。
+
 暗場電影看到字幕周圍一圈灰光、亮物體旁邊整片霧掉，十個新人九個第一句話是「面板漏光，換面板」。錯。Local dimming 的 halo 大部分是韌體把背光 duty 算錯、LCD 端又沒補償造成的。這篇把 duty 演算法從統計、平滑到提交時序整條拆開，講清楚每一層該擋什麼。
 
 ## 前置知識

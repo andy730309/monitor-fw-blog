@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: practitioner
 sources_checked: 2026-11-10
+description: "改了 EDID 螢幕卻沒變？動態重構 EDID 時要重算 checksum，並在資料落位後 toggle HPD，host 才會重新讀取。"
+seo_title: "改了 EDID 卻沒變？checksum 與 HPD toggle"
 difficulty: intermediate
 ---
+> **重點摘要**：依輸入源動態重構 EDID 時有兩個陷阱：沒有重算 checksum，host 會直接丟掉這份 EDID；算好了卻沒有 toggle HPD，host 手上仍是舊資料。正確順序是先讓新資料落位，再拉低 HPD 通知 host 重新讀取。
+
 支援多輸入源的顯示器，EDID 往往不是一份死資料：HDMI 模式掛 CTA-861 extension、DP 模式掛 DisplayID extension，韌體會依輸入源動態重構 EDID 陣列。這個設計很方便，也埋了兩顆地雷：重構時 checksum 沒重算，host 直接把你的螢幕當成不認識的東西；重算好了卻沒 toggle HPD，host 手上還是舊資料，你改了等於白改。這篇把這兩顆地雷一次拆掉。
 
 ## 前置知識

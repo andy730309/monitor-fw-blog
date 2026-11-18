@@ -9,9 +9,10 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-10-30
+description: "廣色域螢幕的 sRGB 模式中間色爆掉，原因常在 3x3 矩陣只能做線性校正。本文比較 3D LUT 與矩陣，並說明 pipeline 順序。"
 difficulty: intermediate
 ---
-# BLOG 標題：3D LUT 還是 3x3 矩陣？廣色域螢幕 sRGB 模式中間色爆掉的真正原因
+> **重點摘要**：3x3 矩陣只能做線性調整，修不了 LCD 的非線性通道竄漏與 S 型曲線；3D LUT 則能在 RGB 立方體裡逐點修正。問題的關鍵還有 pipeline 順序：de-gamma、3D LUT、matrix、gamma。寫程式前先畫 bit depth 預算表，避免每一級精度不足。
 
 ## 【前置知識準備】
 

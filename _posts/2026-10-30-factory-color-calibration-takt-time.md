@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-10-30
+description: "白平衡校正站拖慢 takt time？拆解 DDC/CI 等待、setvcp verify 與 store 三個時間陷阱，並說明怎麼量測與縮短。"
+seo_title: "白平衡校正卡產線？DDC/CI 等待與 store 時間陷阱"
 difficulty: intermediate
 ---
+> **重點摘要**：校正站常是產線瓶頸，因為它既要寫值又要等待。DDC/CI 的 I2C ack 不代表命令已執行，store 也是另一件事。先把時間切成 DDC 等待、pattern 穩定、儀器量測、迭代輪次、store 與重開機驗證五段來量；本案的瓶頸是 DDC 等待與迭代輪次。
+
 ## 【前置知識準備】
 
 先把三個名詞講人話。

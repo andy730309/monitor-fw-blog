@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-03
+description: "240Hz 調好的 Overdrive 開 VRR 後出現白邊或拖影？說明可變 Overdrive 的 LUT 分層、插值與量產驗收要注意的地方。"
+seo_title: "可變 Overdrive：VRR 白邊與 LUT 分層插值"
 difficulty: intermediate
 ---
+> **重點摘要**：很多 Overdrive LUT 是在最高更新率調出來的，開了 Adaptive Sync、影格率下降後，就會出現白邊或暗色拖影。解法是把更新率當成 LUT 的另一個維度分層，並在層與層之間插值。插值要注意死區、斜率與 vblank，驗收時也不能只量兩個點。
+
 很多 gaming monitor 的 Overdrive 是在最高更新率調出來的。240Hz 下看起來乾淨，一開 Adaptive Sync、影格率掉到 70–90fps，暗場物件旁邊就多一圈白光；再掉到 50fps，又變成暗色拖影。這不是面板突然壞掉，而是韌體把「一張 LUT 打天下」這件事用到了 VRR 上。這篇把 Overdrive 的時間維度拆開，說明為什麼要分層、怎麼插值、以及量產時哪裡會踩雷。
 
 ## 前置知識

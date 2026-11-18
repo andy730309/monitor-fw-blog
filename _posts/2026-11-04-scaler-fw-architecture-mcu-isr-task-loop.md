@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-04
+description: "OSD 偶爾卡半秒、久了冒黑塊？說明顯示器韌體的 ISR 與 task 分工、優先權方向、記憶體配置與 watchdog 設計。"
+seo_title: "OSD 卡頓與黑塊：ISR 與 task 分工三個坑"
 difficulty: intermediate
 ---
+> **重點摘要**：ISR 的鐵律是記錄事件、清中斷、通知 task，其他事情一律交給 task。影像、OSD 與 DDC/CI 的即時性需求不同，混在同一個 super-loop 裡就會不穩。記憶體要盡量靜態配置，DDC/CI 的等待不能卡住主迴圈，watchdog 要監看每個 task。
+
 ## 前置知識
 
 想像一間小吃店。外場櫃檯只有一個人，客人一來就要立刻收單，收完單馬上交給內場。櫃檯不能停下來切菜，因為一停，後面的客人就全部堵在門口。內場可以排隊、可以同時處理好幾張單，但櫃檯的原則是「只收件，不煮菜」。

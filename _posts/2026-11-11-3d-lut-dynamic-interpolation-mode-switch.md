@@ -9,8 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-12
+description: "切 HDR 閃怪色、場景一變就偏色？拆解 3D LUT 載入非原子、插值方法、插值域與 vblank commit 四個根因。"
 difficulty: intermediate
 ---
+> **重點摘要**：切換畫質模式時閃怪色、HDR 場景變換時偏色，追下去有四個根因：LUT 載入不是原子切換、插值方法選錯、動態插值的插值域選錯，以及 commit 沒有對齊 vblank。所有影響畫面外觀的設定，都應該在 vblank 期間一次生效。
+
 畫質模式切換是顯示器韌體裡最容易出事的路徑之一：sRGB 切 HDR 閃半秒怪色、HDR 影片場景一變就色偏、送 DisplayHDR 認證時 Subtitle Flicker 邊緣 fail。這三個坑看起來不相干，追下去會落在四個根因：LUT 載入不是原子切換、插值方法選錯、動態插值的插值域選錯、commit 沒有對齊 vblank。這篇照這四個根因拆開講清楚。
 
 ## 前置知識

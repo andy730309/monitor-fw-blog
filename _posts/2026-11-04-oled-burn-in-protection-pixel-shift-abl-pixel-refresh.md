@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-04
+description: "OLED 燒屏是靜態高亮度內容讓部分像素老化較快。本文說明韌體端的 pixel shift、ABL 與 pixel refresh 三層防線。"
+seo_title: "OLED 燒屏怎麼防？pixel shift、ABL 三層防線"
 difficulty: intermediate
 ---
+> **重點摘要**：OLED 每個像素自己發光，發光效率會隨時間與亮度衰減，靜態高亮度內容會讓部分像素老得較快，留下燒屏。防護的核心是讓像素平均使用。韌體靠 pixel shift、ABL 與 pixel refresh 三層防線，缺一不可。
+
 ## 前置知識
 
 OLED（有機發光二極體）面板跟 LCD 不一樣，沒有背光模組，每個像素自己發光（self-emissive）。這意味著每個像素的發光效率都會隨著使用時間與亮度而慢慢衰減。如果某些像素長期顯示靜態高亮度內容（例如遊戲的血條、OSD 選單、桌面任務列），那些像素就會比周圍老得快，結果就是螢幕上留下陰影，這就是 burn-in（燒屏）或 image retention（影像殘留）。

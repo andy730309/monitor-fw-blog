@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: practitioner
 sources_checked: 2026-11-17
+description: "碰一下線材就黑屏？DisplayPort HPD 有長脈衝與短脈衝兩種語意。本文說明 debounce 與 sink 端的 HPD 狀態機設計。"
+seo_title: "DisplayPort HPD 短脈衝與 debounce 三個坑"
 difficulty: intermediate
 ---
+> **重點摘要**：HPD 由螢幕驅動、顯示卡偵測，拉低超過 2 ms 會被當成拔線，拉低 0.5–1.0 ms 則是 IRQ_HPD 事件通知。韌體想通知事件卻拉低太久，畫面就會閃；脈衝太短又可能被忽略。debounce 要用連續取樣確認穩定，並以狀態機管理：連接才拉高，事件只發短脈衝。
+
 ## 前置知識
 
 把 HPD（Hot Plug Detect，熱插拔偵測）想成門口的電鈴，就懂這篇文章在講什麼。先講清楚誰按、誰聽：HPD 是 sink（螢幕）驅動、source（顯示卡）偵測的訊號。螢幕是按電鈴的人，顯示卡是聽電鈴的人。

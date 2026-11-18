@@ -9,8 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: C
 roadmap_stage: senior
 sources_checked: 2026-11-18
+description: "ISP 燒錄站接 MES，序號標籤與燒錄內容對不上？說明配號、燒錄、驗證與 commit 順序，以及離線重送的四個交易邊界坑。"
 difficulty: advanced
 ---
+> **重點摘要**：MES 配號、燒錄器寫入、標籤機列印三個系統各自覺得成功，整台機器卻只能有一份身分。本文把燒錄流程當成分散式交易處理：ACK 不代表內容正確要做三段驗證，序號區要原子寫入、commit 最後寫，離線重送要用 outbox 加冪等鍵。
+
 ## 前置知識
 
 先想一個很日常的場景：幫新生兒報戶口。

@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: practitioner
 sources_checked: 2026-11-04
+description: "HDMI 認證被 ATC 退件，問題常在流程而不是技術。本文說明 Adopter 資格、送測義務、CDF 宣告一致性與 FW freeze。"
+seo_title: "HDMI 認證被退件？Adopter、CDF 與 FW freeze"
 difficulty: intermediate
 ---
+> **重點摘要**：HDMI 認證的坑常不在技術，而在誰有資格送測、送什麼、測什麼。廠商要先成為 Adopter，每種產品類型的第一個產品要送 ATC 測試，ATC 會依照 CDF 宣告來測。FW freeze 之後若再改 EDID，就要重跑 self-test，否則 ATC 抽測會抓到。
+
 寫韌體的人常覺得認證是 PM 的事，反正規格書丟過來照做就好。直到送測退件、fail 報告寄到客戶那邊，你才發現 HDMI 認證的坑不在技術，而在「誰有資格送、送什麼、測什麼」。這篇把 HDMI LA 的 Adopter 制度、ATC 送測義務、CDF 宣告一致性一次講清楚，全部依 HDMI LA 與 HDMI Forum 官網公開頁面，需要會員權限的部分會標「待查證」。
 
 ## 前置知識

@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: C
 roadmap_stage: practitioner
 sources_checked: 2026-11-04
+description: "四台螢幕一起校正反而更慢？拆解多 DUT 並行校正站的儀器互斥鎖、DUT 綁定、pipeline 排程與 UPH 瓶頸數學。"
+seo_title: "多 DUT 並行校正反而更慢？儀器鎖與 UPH"
 difficulty: intermediate
 ---
+> **重點摘要**：多 DUT 並行時，色度儀是共用資源，一次只能量一台，沒有互斥鎖就會量到隔壁工位的畫面。修正方法是把量測段變成唯一的 critical section，用不會漂移的方式綁定 DUT，並用 pipeline 排程。整站產能由瓶頸段的時間決定。
+
 ## 前置知識
 
 先把校正站想成一間只有一台烤箱的烘焙坊。四個師傅（四台 DUT）同時開工，但麵團進烤箱（色度儀量測）一次只能一批，而且烤箱的旋鈕（儀器的命令介面）只有一組——兩個師傅同時伸手轉旋鈕，烤出來的東西是誰的配方都說不清。並行化的重點從來不是「人多好辦事」，而是搞清楚哪一段是烤箱、哪一段是揉麵團。

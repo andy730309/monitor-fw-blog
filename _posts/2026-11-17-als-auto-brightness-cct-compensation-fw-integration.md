@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-17
+description: "ALS 自動亮度造成閃爍客訴？說明讀值濾波、感知域亮度曲線、hysteresis 與 slew rate，以及色溫補償的限幅。"
+seo_title: "ALS 自動亮度與色溫補償的 FW 整合"
 difficulty: intermediate
 ---
+> **重點摘要**：ALS 讀值會抖動，人眼對亮度的感知也是非線性的，把 lux 直接線性映射到 PWM duty，暗室裡就容易閃爍。韌體要先濾波再映射，在感知域設計單調的亮度曲線，加上 hysteresis 與 slew rate。色溫補償要限幅，ALS 與 PWM 的更新也要對齊。
+
 ## 前置知識
 
 環境光感測器（Ambient Light Sensor，ALS）量測的是照度，單位 lux，典型範圍從暗光小於 50 lux 到正午超過 10000 lux（Wikipedia，引用 George Mastorakis 2015）。顯示器韌體用它做兩件事：Auto Brightness（依環境光調整背光）與 Auto Color Temperature（依光源補償色溫）。

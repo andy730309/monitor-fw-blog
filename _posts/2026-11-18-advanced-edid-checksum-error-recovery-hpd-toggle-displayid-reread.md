@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: senior
 sources_checked: 2026-11-18
+description: "動態 EDID 改寫後出錯？說明 EDID 與 DisplayID 兩層 checksum 怎麼重算，以及 HPD toggle 的時機。"
+seo_title: "動態 EDID 與 DisplayID：checksum 與 HPD toggle"
 difficulty: advanced
 ---
+> **重點摘要**：EDID 每個 128-byte block 的 128 個 byte 加總後 mod 256 必須為 0，改寫任何內容都要同步重算 checksum。DisplayID 封裝在 extension block 裡時，section 與外層 block 各有一個 checksum，兩層都要重算。改完資料後還要 toggle HPD，source 才會重新讀取。
+
 ## 前置知識
 
 EDID (Extended Display Identification Data) 是顯示器對 source 宣告能力的標準方式。每個 128-byte block 都有一個 checksum (byte 127，位址 0x7F)，其規則是：所有 128 個 byte 當作無號整數相加，mod 256 的結果必須等於 0。任何 block mutation（改 extension count、改 SVD、改 timing）必須同步重算 checksum，否則 source 會判定 EDID 無效。之後用什麼解析度由 source 決定：DP 2.0 規定 EDID 損壞時，source 可改用自選的 fallback timing（VESA DP 2.0 PDF p.987）；Linux 在 base block 無效時直接當作沒有 EDID（drivers/gpu/drm/drm_edid.c）。Windows 實際會落到哪個解析度，待查證。

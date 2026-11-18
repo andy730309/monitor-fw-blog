@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: C
 roadmap_stage: practitioner
 sources_checked: 2026-11-04
+description: "顯示器 FW 在 EVT、DVT、PVT、MP 各要驗收什麼？提供 NPI 四階段 gate criteria 範本與 EDID、DDC/CI 自動驗收腳本。"
+seo_title: "顯示器 FW NPI gate criteria 四階段範本"
 difficulty: intermediate
 ---
+> **重點摘要**：NPI 的 EVT、DVT、PVT、MP 每個階段都要有驗收標準，否則問題要到出貨後才會被發現。本文整理顯示器 FW 在四個階段的 gate criteria，並提供用 Python 自動驗收 EDID 與 DDC/CI 的腳本。
+
 ## 前置知識
 
 把顯示器 FW 的開發想像成蓋房子：EVT 是蓋樁腳，確認地基穩不穩；DVT 是蓋房子主體，確認每間房功能都正常；PVT 是試住，確認大量生產的房子品質一致；MP 是交屋，確認每一棟交給客戶時都沒問題。每一階段交屋前都要有「驗收標準」（gate criteria），否則房子蓋完才發現牆面有裂縫，客戶退房（客退）就來不及了。

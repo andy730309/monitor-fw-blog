@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: senior
 sources_checked: 2026-11-18
+description: "UHBR20 一過中繼器就訓練失敗？拆解 LTTPR one-hot 計數、透明與非透明模式切換序列，以及 fallback 階梯順序。"
+seo_title: "UHBR20 過中繼器就失敗？LTTPR 三個坑"
 difficulty: advanced
 ---
+> **重點摘要**：設計能過 pre-compliance 的失敗回復狀態機時，有三個坑：LTTPR 計數是 one-hot 位元型樣，不是二進位數字；切換模式要先明確回到透明模式，再寫非透明；fallback 要先降頻率、再減通道。這些錯誤平常看不出來，接上中繼器、跑到 UHBR20 才會出事。
+
 上一篇談 LTTPR 時，我們把「發現、模式、fallback」的輪廓建立起來了。這篇往下挖一層：真的要設計一套能過 pre-compliance 的失敗回復狀態機時，新人最容易栽進去的三個坑——LTTPR 計數的 one-hot 解碼、Transparent/Non-Transparent 的切換序列、以及 fallback 階梯的順序。這三個坑的共同特徵是：程式碼看起來都會動，log 看起來都合理，只有接上中繼器、拉到 UHBR20 才會炸。
 
 ## 前置知識

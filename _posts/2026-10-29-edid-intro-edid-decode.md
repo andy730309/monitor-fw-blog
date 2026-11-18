@@ -8,8 +8,11 @@ prerequisites: []
 series: "Part 2：EDID 與周邊"
 roadmap_stage: foundations
 sources_checked: 2026-10-29
+description: "EDID 是顯示器的身分證，告訴源端支援哪些解析度、色域與時序。本文用 edid-decode 逐欄拆解 Base Block 與 CTA-861 擴充區塊。"
 difficulty: beginner
 ---
+> **重點摘要**：EDID 是 VESA 定義的資料結構，存在顯示器的 EEPROM，源端透過 DDC 讀取後才知道螢幕支援哪些時序與功能。韌體工程師在 bring-up、認證送測、客訴分析與產線都會用到它。本文用 edid-decode 實際拆解一份 EDID，逐欄說明含義。
+
 ## 為什麼重要
 
 當你把一台新螢幕接上筆電，作業系統「自動」跳出正確解析度、更新率、HDR 選項，背後靠的就是 EDID (Extended Display Identification Data)。EDID 就是顯示器的「身分證」：它告訴源端（顯卡、主機板、遊戲主機）「我是誰、我支援什麼解析度、我的色域是多少、我要用什麼時序」。

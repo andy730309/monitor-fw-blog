@@ -9,9 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: senior
 sources_checked: 2026-10-30
+description: "DP daisy-chain 的第二台螢幕忽然不見？拆解 MST sideband message 的 16-byte 分段、DPCD 收發位址與通知時序。"
+seo_title: "daisy-chain 第二台不見？DP sideband 分段與通知時序"
 difficulty: intermediate
 ---
-# BLOG 標題：daisy-chain 第二台螢幕忽然不見？DP sideband message 的 16-byte 分段與通知時序
+> **重點摘要**：DP daisy-chain 靠 MST 運作，拓樸發現、頻寬分配與下游 EDID 讀取都走 AUX channel 上的 sideband message。sideband 訊息要分段收發，DPCD 0x1000 與 0x1400 是收發位址。修正原則是「寫完才通知、收齊才處置」，並分層設定 timeout。
 
 ## 【前置知識準備】
 

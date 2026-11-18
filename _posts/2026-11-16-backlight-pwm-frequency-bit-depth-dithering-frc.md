@@ -9,8 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-16
+description: "背光 PWM 頻率、duty 與 bit depth 受同一時脈限制，要高頻就得犧牲 bit depth。本文說明與 dithering／FRC 的取捨。"
 difficulty: intermediate
 ---
+> **重點摘要**：PWM 頻率決定 flicker 是否可見，duty 決定亮度，bit depth 決定亮度階梯的細緻程度，三者受同一時脈限制。頻率越高，最小 on-time 對應的最低 duty 越大，低亮度解析度越差。dithering 與 FRC 用時間換解析度，但可能引入低頻拍頻。
+
 ## 前置知識
 
 PWM（Pulse Width Modulation）調光的本質是快速開關背光 LED，用 duty cycle 控制平均亮度。頻率（Hz）決定 flicker 是否可見，duty cycle 決定亮度，bit depth 決定亮度階梯的細緻程度。三者受同一時脈限制：要更高頻率就得犧牲 bit depth。FRC（Frame Rate Control）與 PWM dithering 則是用時間換解析度，以幀間或段間切換模擬中間灰階；切換圖樣的重複週期如果落在低頻，就會變成看得到的包絡。TÜV Flicker Free（certipedia keyword 1830）的說明是：在多種亮度設定下，0–3000 Hz 範圍內沒有該標準定義的可見與不可見 flicker。

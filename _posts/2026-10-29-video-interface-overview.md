@@ -8,9 +8,20 @@ prerequisites: ["基本電腦硬體概念", "了解什麼是解析度、更新�
 series: "Part 0：整機全貌"
 roadmap_stage: foundations
 sources_checked: 2026-10-29
+description: "一次釐清 VGA、DVI、HDMI、DisplayPort、USB-C 五大影像介面的演進與差異，學會算頻寬，建立顯示器韌體的介面地圖。"
+seo_title: "影像介面總覽：VGA、DVI、HDMI、DP、USB-C"
+faq:
+  - q: "VGA、DVI、HDMI、DisplayPort、USB-C 五者中，哪些是「類比訊號」？哪些支援「音訊」？"
+    a: "類比只有 VGA。支援音訊的有 HDMI、DisplayPort、USB-C (透過 Alt Mode 傳 DP/HDMI 音訊)。DVI 無音訊。"
+  - q: "什麼是 DP++ (Dual-Mode)？為什麼 USB-C Alt Mode 不支援 DP++？"
+    a: "DP++ 讓 DP source 直接輸出 TMDS 訊號，透過 passive adapter 接 HDMI/DVI。USB-C Alt Mode 將高速差分對改配為 DP Main Link，物理層已非 DP 原生訊號，且 USB-C 規範未定義 DP++ 的 AC-coupling 與 level shifting，故明文禁止。"
+  - q: "HDMI 2.0 (TMDS) 與 HDMI 2.1 (FRL) 在傳輸機制上最大的不同是什麼？"
+    a: "TMDS 用 3 data lanes + 1 clock lane，pixel clock 傳輸，8b/10b 編碼；FRL 用 4 data lanes 同步固定速率，無獨立 clock lane，16b/18b 編碼 + RS-FEC，支援 VRR/ALLM/QMS。"
 difficulty: beginner
 mermaid: true
 ---
+> **重點摘要**：VGA、DVI、HDMI、DisplayPort 與 USB-C 在訊號類型、編碼方式與頻寬上限都不同。例如 TMDS 採 8b/10b 編碼，有效頻寬約是連結速率的 80%。本文整理五大介面的演進脈絡，為之後學 DP link training、HDMI FRL 與 USB-C Alt Mode 打底。
+
 ## 為什麼重要
 
 身為顯示器韌體工程師，影像介面是你每天都要面對的「大門」。不管是帶新機種 (EVT/DVT/PVT)、除錯「為什麼這台筆電插上去只有 30Hz」、還是寫 EDID、跑 VESA/HDMI/USB-IF 認證，你都得清楚：

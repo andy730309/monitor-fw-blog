@@ -8,8 +8,22 @@ prerequisites: ["顯示器系統方塊圖入門", "EDID 入門與 edid-decode �
 series: "Part 6：色彩、HDR、畫質"
 roadmap_stage: foundations
 sources_checked: 2026-10-29
+description: "一次看懂 RGB 加色、Gamma／EOTF、色溫與 CCT、sRGB／DCI-P3／Adobe RGB 色域，以及顯示器韌體怎麼把這些規格落實。"
+faq:
+  - q: "sRGB 的 Gamma 是 2.2 嗎？為什麼？"
+    a: "不是。sRGB EOTF 是 IEC 61966-2-1 定義的分段函數：暗部線性段 (斜率 12.92, gamma=1.0) + 亮部 2.4 次方。瞬間 gamma 從 1.0 變到 2.4，中位數約 2.2，但非單一數值。純 pow(x,2.2) 在暗部誤差最大。"
+  - q: "DCI-P3 劇院版與 Display P3 最大差異在哪？"
+    a: "白點與 EOTF。劇院版：白點 ~6300 K (x=0.314, y=0.351，偏綠)、Gamma 2.6、48 cd/m²。Display P3：白點 D65、EOTF 採 sRGB 分段函數、亮度通常 100-300 cd/m²。"
+  - q: "為什麼「白點 6500K」不足以保證白點一致？"
+    a: "CCT (相關色溫) 不是單一點。多組 (x,y) 座標可對應同一 CCT（沿等溫線分布）。同為 6500K，可能一偏綠 (Δuv>0)、一偏品紅 (Δuv<0)，肉眼明顯可見。必須指定 xy 或 u'v' 座標。"
+  - q: "Adobe RGB 綠基色為何設在 (0.21, 0.71)？"
+    a: "為了涵蓋 CMYK 印刷色域中的青綠區。sRGB 綠基色 (0.30, 0.60) 會切掉印刷可呈現的飽和青綠；Adobe RGB 將綠基色大幅向光譜軌跡外擴，覆蓋更多印刷色彩。"
+  - q: "廣色域面板 (原生接近 DCI-P3) 顯示 sRGB 內容時，若不做色域映射會發生什麼？"
+    a: "過度飽和。sRGB 定義的 (1,0,0) 紅會被映射到面板原生更飽和的紅，導致膚色偏紅、品牌色失真。需用 3x3 Matrix 或 3D LUT 將 sRGB 色域壓縮/映射到面板原生色域內。"
 difficulty: beginner
 ---
+> **重點摘要**：顯示器色彩問題的根源在四大基石：RGB 色彩模型、Gamma／EOTF、色溫與白點，以及色域。韌體工程師要看懂 EDID 裡的色度資料，寫 Gamma LUT、3x3 Matrix 與 3D LUT，並在 OSD 實作色溫模式。本文從規格一路講到韌體實作與工廠校正。
+
 ## 為什麼重要
 
 你買了一支「100% sRGB」的顯示器，同事卻說「這支只有 95% DCI-P3」；設計師抱怨「膚色偏紅」、玩家說「HDR 畫面發灰」；校正報告寫著 ΔE < 1，客戶還是提出客退說「白點偏藍」。

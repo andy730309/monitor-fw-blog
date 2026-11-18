@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-17
+description: "廣色域螢幕的 sRGB 模式飽和紅偏橘、膚色死灰？問題常在 gamut clamp 做錯域或方法。本文比較 hard clip 與 soft mapping。"
+seo_title: "sRGB 模式鎖色域：hard clip 與 soft mapping"
 difficulty: intermediate
 ---
+> **重點摘要**：sRGB 模式的飽和紅偏橘、膚色死灰，多半不是面板或校正的問題，而是 gamut clamp 做錯了域或方法。clamp 只能在線性域進行；hard clip 數學上合法，視覺上卻會出問題，soft mapping 則往白點方向壓縮。量產時 3D LUT 是正解，矩陣只是備案。
+
 廣色域螢幕的 sRGB 模式，是色彩驗證最容易翻車、也最容易出客訴的一個模式。翻車的樣子很固定：飽和紅偏橘、膚色死灰、高飽和色細節糊成一團。這篇把根因拆開：大部分不是 panel 爛，也不是校正沒做好，而是 gamut clamp 這一步做錯了域、或做錯了方法。
 
 ## 前置知識

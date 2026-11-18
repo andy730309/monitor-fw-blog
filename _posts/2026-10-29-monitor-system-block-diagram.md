@@ -8,9 +8,20 @@ prerequisites: ["基本電子電路觀念（電壓、電流、訊號）", "知�
 series: "Part 0：整機全貌"
 roadmap_stage: foundations
 sources_checked: 2026-10-29
+description: "顯示器裡的 Scaler、T-CON、Panel、背光、USB-C PD 與 USB Hub 各自負責什麼？本文用系統方塊圖說明分工與訊號路徑。"
+seo_title: "顯示器系統方塊圖：Scaler、T-CON、Panel 怎麼分工"
+faq:
+  - q: "Scaler 和 T-CON 最大的分工差別是什麼？"
+    a: "Scaler 負責「收訊號、處理圖、管系統」；T-CON 負責「把處理好的圖轉成 Panel 逐行逐列的驅動時序」。Scaler 面向 Host/介面標準；T-CON 面向 Panel 物理特性。"
+  - q: "為什麼 LCD 需要 Backlight 而 OLED 不需要？"
+    a: "LCD 的液晶本身不發光，只能控制「通光/遮光」，必須要有背光模組提供光源；OLED 每個次像素都是自發光二極體，電流通過即發光，不需額外背光。"
+  - q: "什麼是 PSR (Panel Self-Refresh)？它省在哪裡？"
+    a: "靜態畫面時，T-CON 內建 Frame Buffer 維持顯示，關閉 Scaler→T-CON 的 Main Link (eDP/DP)，讓 GPU 和 Link 進入低功耗狀態，省下 Link 功耗與 GPU 記憶體頻寬。"
 difficulty: beginner
 mermaid: true
 ---
+> **重點摘要**：一台顯示器裡有六大子系統同時運作：Scaler、T-CON、Panel、背光、USB-C PD 與 USB Hub。Scaler 負責收訊號、處理影像與管理系統，T-CON 負責把影像轉成面板的驅動時序。除錯畫面不亮或 USB-C 充不了電，第一步就是看懂這張方塊圖。
+
 ## 為什麼重要
 
 你拿到一台新監視器，插上 HDMI 或 USB-C，畫面就亮了。但在機殼裡，其實有 **六大子系統** 在同時運作：

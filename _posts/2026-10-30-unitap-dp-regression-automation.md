@@ -9,8 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: C
 roadmap_stage: practitioner
 sources_checked: 2026-10-30
+description: "Nightly DP 測試時好時壞？拆解 UniTAP 自動化測試台的 HPD settle、參數來源與追溯三個坑，讓 flaky test 變得可重現。"
 difficulty: intermediate
 ---
+> **重點摘要**：Flaky test 比穩定失敗更危險，因為它會養成重跑到綠燈的壞習慣。排查時第一順位是 HPD 與 DUT 端的 debounce，先問這個 test 之前發生了什麼插拔或斷電。修正方法是把手測時自然的等待寫成前置步驟，並讓測試參數只有一個來源。
+
 ## 【前置知識準備】
 
 先講兩個名詞，再講一個工程觀念。

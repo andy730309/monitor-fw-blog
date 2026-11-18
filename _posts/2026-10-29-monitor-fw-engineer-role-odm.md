@@ -8,9 +8,21 @@ prerequisites: []
 series: "Part 0：整機全貌"
 roadmap_stage: foundations
 sources_checked: 2026-10-29
+description: "系統廠／ODM 的顯示器韌體工程師做什麼？依 EVT、DVT、PVT、MP 四個階段，說明每天的工作內容、合作對象與常見陷阱。"
+faq:
+  - q: "系統廠/ODM 韌體工程師與 IC 設計廠韌體工程師最大的差別是什麼？"
+    a: "系統廠負責「整合、客製化、認證、量產、維護」完整產品韌體，直接面對面板、機構、光學、產線、客訴；IC 設計廠負責提供 SDK/Reference Code/驅動程式，專注於晶片 IP 驗證與 API 穩定性。"
+  - q: "EVT、DVT、PVT、MP 四階段中，哪一階段最適合建立自動化測試框架？為什麼？"
+    a: "DVT。此階段功能相對完整、硬體版本定型、有穩定的測試治具，適合投入自動化開發，並在 PVT 前凍結 regression suite。"
+  - q: "顯示器韌體工程師需要會示波器操作嗎？關鍵量測項目有哪些？"
+    a: "需要。關鍵量測：power sequence（各電壓軌上電順序/斜率）、HPD 脈衝寬度/時機、PWM 頻率/占空比、DP/HDMI eye diagram、panel VCC/VEE 時序、backlight enable 延遲。"
+  - q: "Factory Calibration 站通常包含哪些關鍵步驟？"
+    a: "1) 燒錄 FW/EDID/序號 2) 暖機 3) 量測原生 Gamma/白平衡/色域 4) 計算並寫入校正參數 5) 量測驗證 ΔE 6) 燒錄 Uniformity/LUT（若支援）7) 最終功能測試 8) 標籤列印/追溯資料上傳 MES。"
 difficulty: beginner
 mermaid: true
 ---
+> **重點摘要**：IC 設計廠開發 Scaler SoC 的 SDK，系統廠／ODM 的韌體工程師則負責把 SDK 移植、整合、客製化、除錯、認證到量產，交付一台成品顯示器。本文依 EVT、DVT、PVT、MP 四個專案階段，說明每天的工作內容。
+
 ## 為什麼重要
 
 如果你剛進入顯示器產業，或是想轉職到系統廠/ODM（Original Design Manufacturer）做顯示器韌體，這篇文章能幫你建立正確的角色想像。

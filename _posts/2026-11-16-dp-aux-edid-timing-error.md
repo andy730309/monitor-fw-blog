@@ -9,8 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: practitioner
 sources_checked: 2026-11-16
+description: "DP AUX 時序錯誤會讓 EDID 讀取錯位、checksum 對不上。本文說明 AUX 交易格式、sink 端更新 EDID 的流程與韌體修正。"
 difficulty: intermediate
 ---
+> **重點摘要**：DP 的 AUX channel 承載 DPCD 讀寫與 I2C-over-AUX 的 EDID 讀取，sink 必須在時限內開始回覆。讀取時有位元錯誤或漏讀，EDID checksum 就會對不上。sink 端更新 EDID 時要依正確流程重算 checksum，並 toggle HPD 通知 source。
+
 ## 前置知識
 DisplayPort 的 AUX channel 是一對半雙工的差動通道，使用 Manchester-II 編碼，UI 為 0.4–0.6 µs，約 1 Mbps（DP 2.0 Table 3-10，PDF p.723）。它承載 DPCD 暫存器讀寫、I2C-over-AUX（用來讀 EDID／DisplayID）以及 link training 相關的讀寫。HPD 是另一支獨立的訊號線，不走 AUX。
 

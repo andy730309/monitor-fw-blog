@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: practitioner
 sources_checked: 2026-11-04
+description: "切換視訊輸入後鍵盤滑鼠沒跟著換？說明顯示器內建 USB hub 的 tree 架構、上游埠切換與重新列舉的韌體做法。"
+seo_title: "螢幕 USB hub 與 KVM 切換不同步的三個坑"
 difficulty: intermediate
 ---
+> **重點摘要**：KVM 功能要求切換視訊輸入時，鍵盤滑鼠也跟著換到對應的主機。USB 是 tree 架構，切換上游埠後，下游裝置必須在新主機下重新列舉。韌體若只切上游埠，沒有對下游埠做 port reset，新主機就看不到這些裝置。
+
 ## 前置知識
 
 顯示器內建 USB hub 時，主機（來源端，source）連上游埠，鍵盤滑鼠等裝置連下游埠。USB 採 tree 架構，hub 為內部節點（interior node），裝置為葉節點（leaf）；上游埠對應哪台主機，下游裝置就隨著那條路徑列舉（enumeration）。KVM（鍵盤、視訊、滑鼠切換）的意思是：使用者切換視訊輸入（例如 HDMI 切 DisplayPort）時，鍵盤滑鼠應該跟著換到對應的主機。這需要 scaler FW 把視訊輸入選擇、USB hub 上游埠選擇、下游埠電源與複位，全部做成同步切換，否則會出現「畫面換了，鍵盤滑鼠沒反應」的情況。

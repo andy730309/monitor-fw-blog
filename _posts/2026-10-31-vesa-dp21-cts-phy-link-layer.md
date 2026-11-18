@@ -9,9 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: senior
 sources_checked: 2026-10-31
+description: "UHBR10 過不了 CTS？解析 128b/132b link training 的 CDS 階段、DPCD 0x102 的雙重語意與認證工具。"
+seo_title: "UHBR10 過不了 CTS？128b/132b 的 CDS 階段"
 difficulty: intermediate
 ---
-# BLOG 標題：CTS 說你 UHBR10 沒過？128b/132b link training 的 CDS 階段與 DP 2.1 認證工具矩陣
+> **重點摘要**：能動不等於能過 CTS，認證儀器會逐條檢查 assertion。DPCD 0x102 寫入值 3 時，在 128b/132b 代表 TPS2_CDS，在 8b/10b 代表 TPS3，同一個值有兩種語意。訓練狀態機要依編碼模式分表，每宣告一個 capability 都要確認對應的 test case 過得了。
 
 ## 【前置知識準備】
 

@@ -9,9 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: C
 roadmap_stage: practitioner
 sources_checked: 2026-10-31
+description: "Quantum Data 882E 透過 Telnet 遠端控制半夜出錯？拆解 IAC 髒字元、沒等握手就連發與 USB 卡在 Disk 模式三個坑。"
+seo_title: "Quantum Data 882E Telnet 遠端控制三個坑"
 difficulty: intermediate
 ---
-# BLOG 標題：訊號產生器半夜抽風？Quantum Data 882E Telnet 遠端控制的三個坑：IAC 髒字元、沒握手就連發、USB 卡在 Disk 模式
+> **重點摘要**：Telnet 不是裸 TCP，以 IAC（0xFF）開頭的位元組是控制命令，混進資料就會變成髒字元。儀器的 CLI 是逐條處理的狀態機，不等回應就連發，命令會遺失。儀器控制要做 transport 抽象：連線後先清空緩衝、過濾 IAC，每條命令都讀到 prompt 才送下一條。
 
 ## 【前置知識準備】
 

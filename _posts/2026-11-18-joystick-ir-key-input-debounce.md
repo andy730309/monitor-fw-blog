@@ -9,8 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-18
+description: "按一下跳兩格、長按沒反應？說明按鍵 debounce、NEC 紅外線 repeat 碼處理、joystick 方向對應，以及 OSD 值同步。"
 difficulty: intermediate
 ---
+> **重點摘要**：機械按鍵按下時金屬彈片會彈跳，沒有 debounce，一次按壓就會變成好幾次。遙控器長按時送的是 repeat 碼，把它當新按鍵，音量會衝到底，整包丟掉長按又沒反應。本文說明不在 ISR 裡數數的 debounce、NEC 三態分流，以及按鍵與 host 改值的同步。
+
 ## 前置知識
 
 把 OSD 想成一家便利商店的收銀機。按鍵是客人按的鈴，joystick 是方向搖桿，遙控器是隔壁棟打來的內線電話。收銀機（韌體）的工作是：客人按一次鈴，就該只結一次帳；搖桿往左，畫面上的游標就該往左；內線說「音量調大」，就該調一次，不是調一百次。

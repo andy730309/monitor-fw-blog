@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-14
+description: "Mini-LED 背光 PWM 頻率與更新率不成整數倍，就會產生拍頻。本文說明如何消除低灰階條帶與閃爍。"
+seo_title: "Mini-LED PWM 與 FRC 拍頻：消除低灰階閃爍"
 difficulty: intermediate
 ---
+> **重點摘要**：背光 PWM 和 scaler 的 FRC 會互相干擾：PWM 頻率和更新率沒有整數倍關係、相位也沒對齊時，就會產生拍頻，在低灰階出現移動的亮暗帶與閃爍。本文說明整數倍頻率設計、時空混合 dithering 與 DC/PWM 混合調光。
+
 ## 前置知識
 
 在顯示器架構中，背光調光（Backlight Dimming）與面板畫素色彩處理（如 Bit Depth、FRC / Dithering）是決定暗場畫質與色彩平滑度的兩個關鍵子系統。

@@ -9,8 +9,12 @@ series: "Part 4：DisplayPort（含 DSC、eDP）"
 roadmap_stage: practitioner
 sources_checked: 2026-10-29
 spec_checked: "VESA DSC 1.2b、VESA DP 2.0、DSC Source Device Guidelines r1.0；2026-10-29 逐項核對"
+description: "4K144 螢幕開 DSC 出現綠條？拆解 sink 端 DSC 能力宣告、slice 與 bpp 定點數，以及 PPS 驗證最容易踩的坑。"
+seo_title: "DSC 綠條亂竄？sink 端 DSC 參數宣告與 PPS 驗證"
 difficulty: intermediate
 ---
+> **重點摘要**：DSC 是 VESA 的視覺無損壓縮，sink 端在 DPCD 宣告的能力就是一份合約。宣告超出 decoder 實際能力，source 照規格送出合法參數，畫面卻會出錯。填宣告前要逐欄對照 decoder datasheet；PPS 的 bpp 是以 1/16 為單位的定點數，計算時要先確認單位。
+
 ## 【前置知識準備】
 
 先講清楚 DSC 是什麼。DSC（Display Stream Compression，VESA 的顯示串流壓縮標準）是一種「視覺無損（visually lossless）」的壓縮：一般人在一般觀看條件下，看不出壓縮前後的差別。規格把「視覺無損」定義為人眼看不出壓縮重建前後差異（VESA DSC 1.2b PDF p.26）。典型壓縮比在 1：1 到約 3：1 之間（DisplayPort FAQ，規格本身沒有寫這個範圍）。為什麼需要它？因為 4K 144Hz、8K 60Hz 這種模式，未壓縮的資料量超過 DP 1.4 link 的承載能力，不壓縮就只能降更新率或降色深。

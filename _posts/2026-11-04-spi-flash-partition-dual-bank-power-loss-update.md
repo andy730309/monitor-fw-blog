@@ -9,8 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-04
+description: "韌體升級中斷電就變磚？說明顯示器 SPI flash 的 dual-bank（A/B）分割，以及只有單一 commit 出口的防斷電更新流程。"
 difficulty: intermediate
 ---
+> **重點摘要**：單 bank 就地升級時，如果在擦除與寫入之間斷電，舊映像已毀、新映像不完整，機器就會變磚。dual-bank 機制只寫入沒在用的 bank，驗證通過後才切換開機 bank，中途斷電也能用舊 bank 開機。
+
 ## 前置知識
 
 顯示器的韌體（firmware）通常燒在一顆 SPI flash 裡，這顆 flash 同時放著 scaler FW 映像、OSD 字型、圖示與 menu table。新手常以為「把新韌體寫進 flash 就完成升級」，但實際上升級期間若斷電，舊映像可能已被擦除、新映像又寫不完，結果是開機黑畫面、OSD 不出現、輸入源切換失效，只能回廠透過 ISP 重燒。

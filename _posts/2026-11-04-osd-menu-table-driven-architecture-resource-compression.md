@@ -9,8 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-04
+description: "OSD 選單卡頓、冒黑塊，常是選單表與字型塞滿 SRAM。本文說明 table-driven 架構、資源壓縮與 ISR 分工的修正方式。"
 difficulty: intermediate
 ---
+> **重點摘要**：Scaler 給 OSD 用的 SRAM 很有限，選單表、字型與圖示全放進 RAM，久了就會出現黑塊或當機。修正方法是把選單表與字串移到 flash、壓縮字型與圖示並用固定 block pool，ISR 只設旗標，渲染交給 task。
+
 ## 前置知識
 
 顯示器的 OSD（On Screen Display，螢幕顯示選單）是使用者透過 joystick、IR 或按鍵調整亮度、對比、輸入源的介面。OSD 選單通常以「表」來組織：每個選單項目是一個結構體，包含文字、圖示 ID、回調函式與子選單指標。scaler 晶片給 OSD 用的片上 SRAM 非常有限，如果選單表、字型 bitmap 與圖示全部塞進 RAM，長期開機後就會撐爆，出現黑塊、當機或重開機。

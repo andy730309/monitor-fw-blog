@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: C
 roadmap_stage: principal
 sources_checked: 2026-11-17
+description: "顯示器韌體 release 管理：用 SemVer 定版本號契約，用 security counter 防回滾，搭配 A/B dual-bank。"
+seo_title: "FW 版本號契約、Rollback 與 A/B 雙 bank"
 difficulty: advanced
 ---
+> **重點摘要**：韌體 release 管理就像倉庫管理：版本號是標籤，A/B bank 是備份，rollback 是拿回上一批的機制。本文依 SemVer 2.0.0、NIST SP 800-193 等公開文件，說明版本號契約、anti-rollback 的 security counter，以及 A/B dual-bank 的更新狀態機。
+
 ## 前置知識
 
 想像你管理一個倉庫，每次進新貨都直接把舊貨丟掉、把新貨放上去，沒有備份、沒有標籤。一旦新貨有問題，你既不知道上一批是什麼，也拿不回上一批。顯示器韌體的 release 管理就是這個倉庫的管理規則：版本號是標籤、A/B bank 是備份、rollback 是拿回上一批的機制。

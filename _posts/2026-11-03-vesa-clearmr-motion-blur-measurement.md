@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-03
+description: "ClearMR 的 CMR 是量測結果，不是韌體參數。本文說明 VESA 動態模糊量測方法、CMR 階級，以及 FW 能調整的部分。"
+seo_title: "ClearMR 新人指南：CMR 階級與 FW 可調參數"
 difficulty: intermediate
 ---
+> **重點摘要**：CMR 是 VESA ClearMR 用高速攝影統計清晰與模糊像素比得到的量測結果，不是韌體裡可以直接改的數值。韌體能做的，是在 CTS 的測試條件下調整 Overdrive、背光 duty 與 strobing 等設定，讓產品穩定落在目標階級。
+
 ## 前置知識
 
 顯示器的「動態模糊」不是單一數字能說清楚的。舊規格常用 MPRT（Moving Picture Response Time，動態畫面回應時間）或 GTG（Gray-to-Gray，灰階到灰階）來描述，但這兩者都有盲點：MPRT 只看亮度從 10% 爬到 90% 的時間，沒把整個發光過程算進去；GTG 只關心兩個灰階之間的切換速度，沒說清楚人眼追蹤移動物體時實際看到的模糊程度。

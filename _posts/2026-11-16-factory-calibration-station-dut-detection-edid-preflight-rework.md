@@ -9,9 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: C
 roadmap_stage: practitioner
 sources_checked: 2026-11-16
+description: "產線校正站自動化流程：用 ddcutil 做 DUT 掛載檢測、EDID 前置檢查、DDC/CI 寫入重試，以及校正失敗後的 rework。"
 difficulty: intermediate
 mermaid: true
 ---
+> **重點摘要**：校正站開始校正前，要先確認 DUT 確實掛載，並檢查 EDID 是否正確。本文說明用 ddcutil 做 DUT 掛載檢測、EDID 前置檢查與 DDC/CI 寫入重試，以及校正失敗後自動進入 rework 的流程。
+
 ## 前置知識
 在進入產線校正站的自動化流程前，必須先了解顯示器與主機之間的溝通基礎。DDC/CI（Display Data Channel Command Interface）是跑在 I2C 匯流排上的通訊協定，讓主機（PC 或嵌入式系統）讀寫顯示器的虛擬控制面板（VCP）功能。DDC/CI 顯示器的 I2C 位址固定是 0x6E／0x6F（8-bit 寫法，等於 7-bit 的 0x37；DDC/CI 1.1 p.13）。每個 VCP 功能都對應一個 feature 碼，例如亮度 0x10、對比 0x12、紅綠藍增益 0x16／0x18／0x1A（MCCS 2.2a p.26–27、p.34）。
 

@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: practitioner
 sources_checked: 2026-11-13
+description: "HDMI FRL 訓練成功不是終點。本文說明 rate mismatch 防護、SCDC 錯誤監控狀態機，以及斷線重連的狀態管理。"
+seo_title: "HDMI FRL rate mismatch 與 SCDC 錯誤監控"
 difficulty: intermediate
 ---
+> **重點摘要**：FRL 訓練成功後仍可能出問題，根因是韌體把訓練成功當終點，把 SCDC 當成用完就丟的通道。sink 要防止 PHY 被設到不支援的 rate，要用狀態機持續監看 SCDC 錯誤計數，並管好斷線重連時的狀態。
+
 上一篇我們處理了 FRL 連結訓練（link training）本身的握手問題：sink 什麼時候 set FLT_UPDATE、什麼時候閉嘴。這篇要講的是更陰險的一層：訓練「成功」之後才爆的東西。三個症狀，一根共同的病：韌體把訓練成功當終點，把 SCDC 當成一條用完就丟的通道，而不是一台需要持續盯著的儀表板。
 
 ## 前置知識

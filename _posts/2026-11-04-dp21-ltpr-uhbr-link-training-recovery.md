@@ -9,8 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: practitioner
 sources_checked: 2026-11-04
+description: "DP 2.1 UHBR 連結訓練失敗或降到 4K60？說明 LTTPR 發現與非透明模式、頻率降級優先的 fallback，以及三個常見坑。"
 difficulty: intermediate
 ---
+> **重點摘要**：DP 2.1 的 UHBR 每通道最高 20 Gbps，在 UHBR 頻率下 LTTPR 必須以非透明模式運作，source 會逐顆訓練。sink 韌體若沒有正確轉發 LTTPR 資訊，source 會誤用透明模式，導致訓練失敗或降級。128b/132b 失敗回復時，要先降頻率，再減通道數。
+
 ## 前置知識
 
 DisplayPort（DP）是顯示器與主機之間的數位影像介面。在影像出來之前，來源端（source）與接收端（sink）必須先做「連結訓練」（link training），約定好訊號率與通道數，這就像兩邊先對好對謯機頻道才能說話。DP 2.1 引入了 UHBR（Ultra High Bit Rate）頻率，每條通道最高 20 Gbps，四條通道可達 80 Gbps，夠跑 4K 600Hz 或 8K 120Hz。為了在長纜線上維持訊號品質，DP 2.1 引入了 LTTPR（Link Training Tunable PHY Repeater，連結訓練可調整 PHY 中繼器），一種只處理 PHY 層、不處理加密的訊號中繼器，能在連結訓練時調整自己的輸出參數。

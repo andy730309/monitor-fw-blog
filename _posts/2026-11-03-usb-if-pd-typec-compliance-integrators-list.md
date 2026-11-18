@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: practitioner
 sources_checked: 2026-11-03
+description: "顯示器要取得 USB-IF 認證，韌體得過 VDM Discover Identity 握手與 EPR 狀態機兩關。本文整理認證流程與修正架構。"
+seo_title: "USB-IF Type-C／PD 認證：VDM 與 EPR 實戰"
 difficulty: intermediate
 ---
+> **重點摘要**：顯示器要使用 USB-IF 認證標誌，必須通過授權實驗室的合規測試。測試涵蓋實體層、協定層與策略層，其中 VDM Discover Identity 的回應有嚴格時限。本文說明 VDM 握手時序、USB PD 3.1 EPR 與 Keep-Alive 狀態機，以及韌體修正架構。
+
 ## 前置知識
 在系統廠開發支援 USB Type-C 與 USB Power Delivery（PD）的顯示器時，硬體能夠點亮畫面、供應 65W 或 240W 電力只是基本功。要將產品正式推出市場並在包裝上使用 USB-IF 認證標誌（Certified USB Logo），產品必須通過 USB-IF 授權獨立測試實驗室（Authorized Independent Test Lab, ITL）的嚴格合規性測試（Compliance Testing），並成功取得 Test ID (TID) 列入 USB-IF Integrators List。
 

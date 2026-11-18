@@ -9,8 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-04
+description: "OSD 切換語言出現方塊字？說明多語系字串表外部化、CJK 字型子集化，以及 DDC/CI VCP 0xCC 與 OSD 語言的同步。"
 difficulty: intermediate
 ---
+> **重點摘要**：CJK 字型很佔空間，OSD 字串直接寫進原始碼，切換語言時容易出現方塊字或溢位。建議把各語言字串放進表格，由 build script 產生 C table，並檢查長度。CJK 字型要做子集化，DDC/CI 的 VCP 0xCC 也要和 OSD 語言同步。
+
 ## 前置知識
 
 顯示器的 OSD（On-Screen Display，螢幕顯示選單）是韌體在畫面上疊加的選單與訊息，由 scaler FW 的 OSD 引擎渲染。OSD 字串（如「亮度」、「輸入源」、「語言」）原本常直接寫進 C 原始碼的 `.rodata`，編譯進 firmware image。多語系意味著同一個選單項目要有英文、德文、繁體中文、日文等多個版本，字串長度差異很大（德文常比英文長）。CJK（中文日文韓文）字型更佔空間：一個完整的 CJK Unified Ideographs 字元集動輒兩萬多個字元，直接打包會吃光 scaler 的 SRAM 與 flash。

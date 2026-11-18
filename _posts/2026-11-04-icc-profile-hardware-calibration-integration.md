@@ -9,8 +9,11 @@ series: "從零成為顯示器架構師"
 topic_track: B
 roadmap_stage: practitioner
 sources_checked: 2026-11-04
+description: "校正完隔天色彩又跑掉？說明 ICC profile 與硬體校正的狀態一致性、vcgt 雙重校正，以及韌體應提供的介面。"
 difficulty: intermediate
 ---
+> **重點摘要**：ICC profile 只描述校正當下的顯示狀態，螢幕設定一變，舊 profile 就不再準確。校正資料若同時寫進螢幕 LUT 和顯示卡 vcgt，等於校正兩次。韌體要提供明確的介面，讓校正工具選對寫入路徑。
+
 ## 前置知識
 
 先講一個類比：ICC profile 像是這台螢幕的「體檢報告」，hardware calibration 像是「矯治處方」。體檢報告描述的是矯治「當下」那個身體狀態；如果矯治處方後來改了（或被停掉），舊報告就不再代表現在的這個人。色彩管理系統（CMS，Color Management System）拿著過期報告做色彩轉換，結果就是系統性偏色，而且你看 log 都不會有錯。

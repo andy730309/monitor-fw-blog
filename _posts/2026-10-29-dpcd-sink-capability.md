@@ -9,9 +9,19 @@ series: "Part 4：DisplayPort（含 DSC、eDP）"
 roadmap_stage: practitioner
 sources_checked: 2026-10-29
 spec_checked: "VESA DP 2.0（2019-06-26）PDF；2026-10-29 逐項核對"
+description: "DPCD 是 DP 接收端用來宣告能力的暫存器空間。本文說明 Source 讀 DPCD 的流程、關鍵暫存器，以及與 EDID 的分工。"
+faq:
+  - q: "DPCD 和 EDID 最大的差別是什麼？"
+    a: "EDID 描述「影像格式能力」（解析度、更新率、色域、白點），在 DP 上是經 AUX 的 I²C-over-AUX 讀取；DPCD 描述「傳輸連結能力與狀態」（link rate、lane count、training 狀態、FEC／DSC／LTTPR），用 native AUX 讀寫。Source 插入時兩者都要讀：DPCD 決定怎麼傳，EDID／DisplayID 決定傳什麼（VESA DP 2.0 PDF p.991）。"
+  - q: "什麼時候必須實作 Extended Receiver Capability（02200h–022FFh）？"
+    a: "DPCD r1.4 以上的接收端一律要有，並把 0000Eh bit 7 設 1（VESA DP 2.0 PDF p.438）。00001h 本身就能宣告到 1Eh（HBR3），但延伸區塊要放真實能力，基本區塊可以為了相容舊 Source 保守填寫（VESA DP 2.0 PDF p.426–427）。UHBR 則看 02215h 的速率 bitmap，並把 02206h bit 1 設 1（VESA DP 2.0 PDF p.541）。"
+  - q: "Link training 過程中，Source 如何知道 Channel Equalization（EQ）階段完成？"
+    a: "Source 反覆讀取 LANE0_1_STATUS（00202h）和 LANE2_3_STATUS（00203h），確認每條使用中的 lane 的 CHANNEL_EQ_DONE（Lane 0／2：bit 1；Lane 1／3：bit 5）與 SYMBOL_LOCKED（Lane 0／2：bit 2；Lane 1／3：bit 6）皆為 1，同時 LANE_ALIGN_STATUS_UPDATED（00204h）bit 0 INTERLANE_ALIGN_DONE＝1（VESA DP 2.0 PDF p.490、p.733）。"
 difficulty: beginner
 mermaid: true
 ---
+> **重點摘要**：DPCD 是 DisplayPort 接收端透過 AUX channel 讓 Source 讀寫的暫存器空間，Sink 用它宣告連結能力與狀態。影像格式則由 EDID／DisplayID 描述。Source 偵測到 HPD 插入後會讀 Link/Sink 狀態與 Receiver Capability，再進行 link training。
+
 ## 為什麼重要
 
 當你把筆電插上 DisplayPort 螢幕，螢幕怎麼知道要用 4K@144Hz 還是 1080p@60Hz？Source（顯示卡）又怎麼決定用幾條 lane、多少 link rate 來傳資料？

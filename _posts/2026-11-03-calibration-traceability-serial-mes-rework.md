@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: C
 roadmap_stage: practitioner
 sources_checked: 2026-11-03
+description: "白平衡校正資料沒綁序號、沒上傳 MES，rework 時就找不到原始值。本文說明 traceability 與 DDC/CI 寫入持久化的三個坑。"
+seo_title: "校正資料沒綁序號？MES traceability 三個坑"
 difficulty: intermediate
 ---
+> **重點摘要**：校正結果只寫進本地 log、沒有和 DUT 序號綁定，rework 時就找不到原始校正值，只能全量重校。修正方法是把校正資料和序號綁在一起上傳 MES。寫入的 gain 也要確實存進顯示器，斷電後才不會遺失。
+
 ## 前置知識
 
 產線白平衡校正站就像餐廳出菜前的最後檢查：色度儀（colorimeter，例如 Konica Minolta CA-410）量測螢幕的白點，Python 腳本透過 DDC/CI（Display Data Channel Command Interface，顯示器控制命令介面）把 RGB gain 寫進 scaler，然後希望這台機器出廠時顏色是對的。

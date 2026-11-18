@@ -9,8 +9,12 @@ series: "從零成為顯示器架構師"
 topic_track: A
 roadmap_stage: senior
 sources_checked: 2026-11-04
+description: "接上 Thunderbolt 塢站就閃黑？說明 USB4 DP tunneling 下，monitor 韌體在 AUX、link 訓練與 HPD 的三個責任。"
+seo_title: "Thunderbolt 塢站閃黑？USB4 DP tunneling 三個坑"
 difficulty: advanced
 ---
+> **重點摘要**：USB4 把 DP 流量打包成 tunnel，螢幕只看得到 dock 出來的那段 link，頻寬由別人分配，AUX 回應時間也會被 tunnel 吃掉。monitor 韌體有三個責任：AUX 回應不能超出預算、任何 rate 與 lane 組合都要能訓練、不要把 HPD 當 reset 按鈕。
+
 Monitor 韌體工程師很容易把 USB4 當成「別人的事」：那是 host 的 connection manager、dock 的韌體、GPU 驅動在管的。直到客戶接上 Thunderbolt 塢站，螢幕每五秒黑一次，你才發現 monitor 雖然看不到 tunnel，卻能用自己的 HPD 和 AUX 行為把 tunnel 玩壞。
 
 這篇把 USB4／Thunderbolt 的 DP tunneling 拆成 monitor 端能理解的三件事：你只看得到第二段 link、頻寬是別人分配的、你的 AUX 回應時間會被 tunnel 吃掉。規格數字都對得到本地 USB4 2.0 與 DP 2.0 文件，沒查到的地方會標「待查證」。
