@@ -26,8 +26,8 @@ header_pages:
   - about.md
 github_username: andy730309
 # Search Console／Bing Webmaster 驗證碼：取得後填入（留空則不輸出 meta）
-# webmaster_verifications:
-#   google: 
+webmaster_verifications:
+  google: UnI2zjBG7WLz8W-3DntJhhCv3uPmYkLfgmnQeh4efi4
 #   bing: 
 feed:
   posts_limit: 60
