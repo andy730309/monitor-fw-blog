@@ -1,9 +1,14 @@
 title: 顯示器韌體開發教學
+tagline: 系統廠／ODM 顯示器韌體新人學習路線
 description: 給系統廠 / ODM 顯示器韌體新人的學習路線與教學文章（AI 輔助撰寫，附參考來源）。
-lang: zh-TW
+lang: zh-Hant-TW
+og_locale: zh_TW
 timezone: Asia/Taipei
 url: "https://andy730309.github.io"
 baseurl: "/monitor-fw-blog"
+author:
+  name: andy730309
+  url: "https://github.com/andy730309"
 theme: minima
 markdown: kramdown
 kramdown:
@@ -12,6 +17,7 @@ kramdown:
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
+  - jekyll-sitemap
 permalink: /posts/:year/:month/:day/:title/
 header_pages:
   - series.md
@@ -19,6 +25,25 @@ header_pages:
   - tags.md
   - about.md
 github_username: andy730309
+# Search Console／Bing Webmaster 驗證碼：取得後填入（留空則不輸出 meta）
+# webmaster_verifications:
+#   google: 
+#   bing: 
+feed:
+  posts_limit: 60
+defaults:
+  - scope: { path: "roadmap.md" }
+    values:
+      description: 顯示器韌體新人的學習路線圖：依 Foundations → Practitioner → Senior → Principal 由淺入深，列出各階段文章。
+  - scope: { path: "series.md" }
+    values:
+      description: 依學習藍圖分成 8 個 Part 的完整系列目錄，已發佈的文章有連結，規劃中的文章也一併列出。
+  - scope: { path: "tags.md" }
+    values:
+      description: 依主題標籤瀏覽顯示器韌體文章，例如 DDC/CI、EDID、DisplayPort、HDMI、CA-410 與 OSD。
+  - scope: { path: "about.md" }
+    values:
+      description: 關於本站：給系統廠 / ODM 新進韌體工程師的顯示器韌體中文教學部落格，文章由 AI 輔助撰寫並附參考來源。
 exclude:
   - README.md
   - Gemfile

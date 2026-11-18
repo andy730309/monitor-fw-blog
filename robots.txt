@@ -1,0 +1,11 @@
+---
+layout: null
+sitemap: false
+permalink: /robots.txt
+---
+# 注意：GitHub Pages 專案站的 robots.txt 位於子路徑，搜尋引擎只會讀取網域根目錄的 /robots.txt。
+# 本檔供人工與工具參考；正式提交請在 Search Console 直接送出 sitemap。
+User-agent: *
+Allow: /
+
+Sitemap: {{ '/sitemap.xml' | absolute_url }}

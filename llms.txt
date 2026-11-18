@@ -1,0 +1,24 @@
+---
+layout: null
+sitemap: false
+permalink: /llms.txt
+---
+# {{ site.title }}
+
+> {{ site.description }}
+
+本站是繁體中文（台灣）的顯示器韌體教學部落格，主題包含 scaler／MCU、DDC/CI、EDID、DisplayPort／HDMI、色彩校正、OSD 與產線自動化，目標讀者是系統廠／ODM 新進韌體工程師。文章由 AI 輔助撰寫（Hermes Agent），可能有錯誤；標「（待查證）」處尚未對照原文確認，引用時請以官方規格為準。
+
+## 導覽
+
+- [學習路線]({{ '/roadmap/' | absolute_url }})：依難度由淺入深的路線圖
+- [系列目錄]({{ '/series/' | absolute_url }})：依學習藍圖 Part 0～7 排列
+- [標籤]({{ '/tags/' | absolute_url }})：依主題瀏覽
+- [關於]({{ '/about/' | absolute_url }})
+- [RSS]({{ '/feed.xml' | absolute_url }})
+- [Sitemap]({{ '/sitemap.xml' | absolute_url }})
+
+## 文章（{{ site.posts.size }} 篇，新到舊）
+{% for p in site.posts %}
+- [{{ p.title | strip_html | normalize_whitespace }}]({{ p.url | absolute_url }})：{{ p.date | date: "%Y-%m-%d" }}{% if p.difficulty %}；難度 {{ p.difficulty }}{% endif %}{% if p.tags and p.tags.size > 0 %}；標籤 {{ p.tags | join: "、" }}{% endif %}{% if p.description %}。{{ p.description | strip_html | normalize_whitespace }}{% endif %}
+{%- endfor %}

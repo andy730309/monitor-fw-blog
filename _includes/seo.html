@@ -1,0 +1,176 @@
+{%- comment -%}
+  站台層級 SEO／AEO 標記（取代 jekyll-seo-tag 的 seo 標籤）。
+  描述優先順序：front matter description → 內文第一段非標題文字（自動擷取，最多 110 字）→ site.description。
+  不修改任何文章內文；FAQPage 只在 front matter 有 faq: 清單時輸出。
+{%- endcomment -%}
+{%- assign is_post = false -%}{%- if page.collection == "posts" -%}{%- assign is_post = true -%}{%- endif -%}
+{%- assign is_home = false -%}{%- if page.url == "/" or page.url == "/index.html" -%}{%- assign is_home = true -%}{%- endif -%}
+{%- assign canonical = page.url | replace: "index.html", "" | absolute_url -%}
+{%- comment -%} ---- description ---- {%- endcomment -%}
+{%- assign seo_desc = page.description -%}
+{%- if seo_desc == nil or seo_desc == "" -%}
+  {%- if is_post -%}
+    {%- assign seo_desc = "" -%}
+    {%- assign paras = page.content | split: "<p>" -%}
+    {%- for chunk in paras offset: 1 limit: 8 -%}
+      {%- assign t = chunk | split: "</p>" | first | strip_html | normalize_whitespace | strip -%}
+      {%- assign tlen = t | size -%}
+      {%- if tlen >= 20 -%}
+        {%- if seo_desc == "" -%}{%- assign seo_desc = t -%}{%- else -%}{%- assign seo_desc = seo_desc | append: " " | append: t -%}{%- endif -%}
+      {%- endif -%}
+      {%- assign dlen = seo_desc | size -%}
+      {%- if dlen >= 80 -%}{%- break -%}{%- endif -%}
+    {%- endfor -%}
+    {%- if seo_desc == "" -%}{%- assign seo_desc = site.description -%}{%- endif -%}
+  {%- else -%}
+    {%- assign seo_desc = site.description -%}
+  {%- endif -%}
+{%- endif -%}
+{%- assign seo_desc = seo_desc | strip_html | replace: "&nbsp;", " " | replace: "&ldquo;", "“" | replace: "&rdquo;", "”" | replace: "&lsquo;", "‘" | replace: "&rsquo;", "’" | replace: "&hellip;", "…" | replace: "&mdash;", "—" | replace: "&ndash;", "–" | replace: "&quot;", '"' | replace: "&#39;", "'" | replace: "&lt;", "<" | replace: "&gt;", ">" | replace: "&amp;", "&" | normalize_whitespace | strip | truncate: 110, "…" -%}
+{%- comment -%} ---- title ---- {%- endcomment -%}
+{%- if is_home -%}
+  {%- assign seo_title = site.title | append: "｜" | append: site.tagline -%}
+{%- else -%}
+  {%- assign seo_title = page.title | default: site.title -%}
+  {%- assign tsize = seo_title | size -%}
+  {%- if tsize < 30 -%}{%- assign seo_title = seo_title | append: "｜" | append: site.title -%}{%- endif -%}
+{%- endif -%}
+{%- assign seo_title = seo_title | strip_html | normalize_whitespace -%}
+{%- assign og_title = page.title | default: site.title -%}
+{%- if is_home -%}{%- assign og_title = site.title -%}{%- endif -%}
+<title>{{ seo_title | escape }}</title>
+<meta name="description" content="{{ seo_desc | escape }}">
+<meta name="author" content="{{ site.author.name | escape }}">
+{%- if page.tags and page.tags.size > 0 %}
+<meta name="keywords" content="{{ page.tags | join: ', ' | escape }}">
+{%- endif %}
+<meta name="robots" content="{% if page.noindex or page.url == '/404.html' %}noindex, follow{% else %}index, follow, max-image-preview:large, max-snippet:-1{% endif %}">
+<link rel="canonical" href="{{ canonical }}">
+<link rel="alternate" hreflang="{{ site.lang }}" href="{{ canonical }}">
+<link rel="alternate" hreflang="x-default" href="{{ canonical }}">
+<link rel="sitemap" type="application/xml" href="{{ '/sitemap.xml' | relative_url }}">
+<link rel="alternate" type="text/plain" title="llms.txt" href="{{ '/llms.txt' | relative_url }}">
+<meta property="og:site_name" content="{{ site.title | escape }}">
+<meta property="og:locale" content="{{ site.og_locale | default: 'zh_TW' }}">
+<meta property="og:title" content="{{ og_title | escape }}">
+<meta property="og:description" content="{{ seo_desc | escape }}">
+<meta property="og:url" content="{{ canonical }}">
+<meta property="og:type" content="{% if is_post %}article{% else %}website{% endif %}">
+{%- if is_post %}
+<meta property="article:published_time" content="{{ page.date | date_to_xmlschema }}">
+<meta property="article:modified_time" content="{{ page.last_modified_at | default: page.date | date_to_xmlschema }}">
+{%- if page.series and page.series != "" %}
+<meta property="article:section" content="{{ page.series | escape }}">
+{%- endif %}
+{%- for t in page.tags %}
+<meta property="article:tag" content="{{ t | escape }}">
+{%- endfor %}
+{%- endif %}
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ og_title | escape }}">
+<meta name="twitter:description" content="{{ seo_desc | escape }}">
+{%- if site.webmaster_verifications.google %}
+<meta name="google-site-verification" content="{{ site.webmaster_verifications.google }}">
+{%- endif %}
+{%- if site.webmaster_verifications.bing %}
+<meta name="msvalidate.01" content="{{ site.webmaster_verifications.bing }}">
+{%- endif %}
+{%- assign site_root = '/' | absolute_url -%}
+{%- assign author_url = "https://github.com/" | append: site.github_username -%}
+{%- if is_post -%}
+  {%- case page.difficulty -%}
+    {%- when "beginner" -%}{%- assign prof = "Beginner" -%}
+    {%- when "expert" -%}{%- assign prof = "Expert" -%}
+    {%- when "advanced" -%}{%- assign prof = "Expert" -%}
+    {%- else -%}{%- assign prof = nil -%}
+  {%- endcase %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": ["BlogPosting", "TechArticle"],
+      "@id": {{ canonical | append: "#article" | jsonify }},
+      "headline": {{ page.title | strip_html | jsonify }},
+      "description": {{ seo_desc | jsonify }},
+      "url": {{ canonical | jsonify }},
+      "mainEntityOfPage": {"@type": "WebPage", "@id": {{ canonical | jsonify }}},
+      "datePublished": {{ page.date | date_to_xmlschema | jsonify }},
+      "dateModified": {{ page.last_modified_at | default: page.date | date_to_xmlschema | jsonify }},
+      "inLanguage": {{ site.lang | jsonify }},
+      "author": {"@type": "Person", "name": {{ site.author.name | jsonify }}, "url": {{ author_url | jsonify }}},
+      "publisher": {"@type": "Organization", "name": {{ site.title | jsonify }}, "url": {{ site_root | jsonify }}},
+      "isPartOf": {"@type": "WebSite", "@id": {{ site_root | append: "#website" | jsonify }}},
+      {%- if page.series and page.series != "" %}
+      "articleSection": {{ page.series | jsonify }},
+      {%- endif %}
+      {%- if prof %}
+      "proficiencyLevel": {{ prof | jsonify }},
+      {%- endif %}
+      {%- if page.difficulty %}
+      "educationalLevel": {{ page.difficulty | jsonify }},
+      {%- endif %}
+      "keywords": {{ page.tags | jsonify }},
+      "isAccessibleForFree": true
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "首頁", "item": {{ site_root | jsonify }}},
+        {"@type": "ListItem", "position": 2, "name": "系列目錄", "item": {{ '/series/' | absolute_url | jsonify }}},
+        {"@type": "ListItem", "position": 3, "name": {{ page.title | strip_html | jsonify }}, "item": {{ canonical | jsonify }}}
+      ]
+    }
+    {%- if page.faq and page.faq.size > 0 %},
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {%- for qa in page.faq %}
+        {"@type": "Question", "name": {{ qa.q | strip_html | jsonify }}, "acceptedAnswer": {"@type": "Answer", "text": {{ qa.a | strip_html | jsonify }}}}{% unless forloop.last %},{% endunless %}
+        {%- endfor %}
+      ]
+    }
+    {%- endif %}
+  ]
+}
+</script>
+{%- elsif is_home %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": {{ site_root | append: "#website" | jsonify }},
+      "name": {{ site.title | jsonify }},
+      "description": {{ site.description | jsonify }},
+      "url": {{ site_root | jsonify }},
+      "inLanguage": {{ site.lang | jsonify }},
+      "publisher": {"@type": "Organization", "name": {{ site.title | jsonify }}, "url": {{ site_root | jsonify }}}
+    },
+    {
+      "@type": "Blog",
+      "name": {{ site.title | jsonify }},
+      "url": {{ site_root | jsonify }},
+      "inLanguage": {{ site.lang | jsonify }},
+      "blogPost": [
+        {%- for p in site.posts limit: 20 %}
+        {"@type": "BlogPosting", "headline": {{ p.title | strip_html | jsonify }}, "url": {{ p.url | absolute_url | jsonify }}, "datePublished": {{ p.date | date_to_xmlschema | jsonify }}}{% unless forloop.last %},{% endunless %}
+        {%- endfor %}
+      ]
+    }
+  ]
+}
+</script>
+{%- else %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "首頁", "item": {{ site_root | jsonify }}},
+    {"@type": "ListItem", "position": 2, "name": {{ page.title | default: site.title | strip_html | jsonify }}, "item": {{ canonical | jsonify }}}
+  ]
+}
+</script>
+{%- endif %}
