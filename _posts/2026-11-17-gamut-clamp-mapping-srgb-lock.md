@@ -23,7 +23,7 @@ difficulty: intermediate
 
 **色域（gamut）**：一個設備能顯示的顏色範圍。sRGB 模式要「鎖」的目標色域，用的是 ITU-R BT.709 reference primaries：紅（x=0.6400, y=0.3300）、綠（x=0.3000, y=0.6000）、藍（x=0.1500, y=0.0600）、白點 D65（x=0.3127, y=0.3290）。這組數字出自 W3C 託管的 sRGB 提案文件 Table 0.2，文件裡明寫這些就是 ITU-R BT.709 reference primaries。而廣色域 HDR 內容的基準是 ITU-R BT.2020 primaries：紅（x=0.708, y=0.292）、綠（x=0.170, y=0.797）、藍（x=0.131, y=0.046）、白點同樣是 D65，出自 Rec. ITU-R BT.2020-2 的 Table 3。BT.2020 的三角形比 BT.709 大很多，所以一台原生色域接近 BT.2020 或 DCI-P3 的螢幕，要顯示 sRGB 內容時，得把超出的顏色「收」進來。
 
-**OOG（out-of-gamut）**：目標色域裝不下的顏色。把廣色域的顏色用矩陣轉到 BT.709 座標系時，超出來的顏色會變成負值或大於 1.0 的三刺激值。sRGB 提案文件對此講得很白：負值與大於 1.00 的值通常不保留，編碼軟體不支援 extended range 時，就用 simple clipping 限制在 0.0 到 1.0 之間。這句話是所有 gamut clamp 的起點，但注意，它描述的是「數學上合法」，不是「視覺上最好」。
+**OOG（out-of-gamut）**：目標色域裝不下的顏色。把廣色域的顏色用矩陣轉到 BT.709 座標系時，超出來的顏色會變成負值或大於 1.0 的三刺激值。負值與大於 1.00 的值通常不保留，編碼軟體不支援 extended range 時，就用 simple clipping 限制在 0.0 到 1.0 之間[^1]。這句話是所有 gamut clamp 的起點，但注意，它描述的是「數學上合法」，不是「視覺上最好」。
 
 **工程類比**：把大水庫的水倒進小水庫，超出容量的水有兩種處理法。第一種是直接把滿出來的水切掉（hard clip），水位永遠不會超過壩頂，但切掉的水去哪了？消失了，而且壩頂附近一大片水面全部被壓成同一個高度。第二種是把整片水面等比例往下壓（soft mapping），每個位置的高度關係還在，只是整體矮一點。顯示器裡，第一種做法就是「高飽和色糊成一團」，第二種就是 gamut mapping。
 
@@ -160,10 +160,12 @@ HDR 的 tone mapping 是另一條路，亮度錨點用 Report ITU-R BT.2408-8 �
 
 看懂這條路徑的關鍵，是知道每一步在哪個域：
 
-```
-input CSC → de-gamma → [gamut 轉換 + OOG 處理] → gamma 再編碼 → panel 補償 → dithering
-                          ↑ 只能在線性域
-```
+1. input CSC
+2. de-gamma
+3. gamut 轉換 + OOG 處理（只能在線性域）
+4. gamma 再編碼
+5. panel 補償
+6. dithering
 
 未來寫 code 或驗證時的檢查點：
 
@@ -189,3 +191,5 @@ sRGB EOTF：線性值 = ((c + 0.055) / 1.055)^2.4（c > 0.04045 時）。c = 0.9
 2. Rec. ITU-R BT.2020-2（Parameter values for ultra-high definition television systems for production and international programme exchange），官方：https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.2020-2-201510-I!!PDF-E.pdf （Table 3：primaries 與 D65 色度座標）
 3. M. Stokes、M. Anderson、S. Chandrasekar、R. Motta，「A Standard Default Color Space for the Internet — sRGB」Version 1.10，1996-11-05，W3C 託管（IEC 61966-2-1 的前身提案，正式版 IEC 61966-2-1 需向 IEC 購買）：https://www.w3.org/Graphics/Color/sRGB （Table 0.2：BT.709 reference primaries 與 D65；simple clipping 對 OOG 的描述）
 4. Report ITU-R BT.2408-8（11/2024，Suggested guidance for operational practices in high dynamic range television production），官方：https://www.itu.int/dms_pub/itu-r/opb/rep/R-REP-BT.2408-8-2024-PDF-E.pdf （HDR Reference White 203 cd/m²、58%PQ／75%HLG、Table 4 峰值對照表）
+
+[^1]: M. Stokes、M. Anderson、S. Chandrasekar、R. Motta，〈A Standard Default Color Space for the Internet — sRGB〉Version 1.10，1996-11-05，W3C（見參考資料 3）。章節待查證。

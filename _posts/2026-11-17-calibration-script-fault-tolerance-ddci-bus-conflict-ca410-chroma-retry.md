@@ -61,7 +61,7 @@ ddcutil 官方文件對 I2C 的描述很直白：I2C 本身就是不可靠的協
 多個持有者就是另一回事。ddcutil 2.0 加入 cross-instance locking：開啟 display handle 時對 `/dev/i2c` 做 `flock()`，關閉才釋放，用意就是避免兩個 ddcutil／libddcutil 實例互相蓋掉 DDC 交易。但這段保護有三個破口：
 
 - 舊版 ddcutil 沒有這個 lock。產線站若還釘在 1.x，等於裸奔。
-- 它可以用 `--disable-cross-instance-locks` 關掉。ddcutil FAQ 提到的 KDE Plasma 6 案例就是反過來：PowerDevil 開著 handle 不放，把其他程式鎖死。
+- 它可以用 `--disable-cross-instance-locks` 關掉。KDE Plasma 6 有一個案例正好反過來[^1]：PowerDevil 開著 handle 不放，把其他程式鎖死。
 - 不走 ddcutil 的程式完全不受約束。自寫的 I2C 工具、面板廠調機程式，直接開 `/dev/i2c-N`，flock 對它沒有意義。
 
 實務結論：**站內所有 DDC 寫入路徑都要經過同一把站級鎖**，而且鎖的範圍是「寫入＋讀回驗證＋store」整段，不是只包住一行 `setvcp`。你包一行，別支程式還是可以在你「寫完、還沒驗證」的空檔插進來。
@@ -165,7 +165,7 @@ class Ca410Link:
 
 ### 坑五：2238 回了 OK，畫面也不一定換好了，你只能看證據
 
-2238 的公開手冊寫的是 `RUN TIM xxxx ;` 與 `RUN PTN xxxx ;`（User's Manual §3.2.2，RS-232 115200 8-N-1 見 §3.1），語意是「載入 timing 並啟用」「載入 pattern 並啟用」。手冊 §3.2 說，系統收到命令會先檢查參數，執行正常就回 `OK`，否則回 `NG`，例如 `NG; BOUNDARY ERROR:`（PDF p.65）。所以參數打錯是看得到的，一定要讀回覆。但手冊沒有「畫面已輸出穩定」的查詢命令；`OK` 是在什麼時間點回，手冊沒寫清楚（待查證，需實機量測）。
+2238 的公開手冊寫的是 `RUN TIM xxxx ;` 與 `RUN PTN xxxx ;`（User's Manual §3.2.2，RS-232 115200 8-N-1 見 §3.1），語意是「載入 timing 並啟用」「載入 pattern 並啟用」。系統收到命令會先檢查參數，執行正常就回 `OK`，否則回 `NG`，例如 `NG; BOUNDARY ERROR:`[^2]。所以參數打錯是看得到的，一定要讀回覆。但手冊沒有「畫面已輸出穩定」的查詢命令；`OK` 是在什麼時間點回，手冊沒寫清楚（待查證，需實機量測）。
 
 Chroma 官網標示 8K@60Hz 的 pattern 切換時間小於 0.2 秒，但那是 VPG 圖形核心換圖的時間，不含 DUT 的 mode change／link retrain、面板背光與 overdrive 進入穩態、量測儀器的積分時間。固定睡 300 ms 只涵蓋其中一段，而且是最理想的情況。
 
@@ -308,3 +308,6 @@ DDC/CI 的 Set VCP 沒有回覆，所以 host 的規則是：寫之前先讀 bus
 - Konica Minolta, CA-410 news release（2017-11-09；量測速度 1／5／20 次/秒、白點色度精度 ±0.003／±0.002、USB 2.0／RS-232C）：https://www.konicaminolta.com/newsroom/2017/1109-01-01.html （官方）
 - Konica Minolta, CA-410 instruction manual（RS-232C 38,400 bps）：https://www.konicaminolta.com/instruments/download/instruction_manual/display/pdf/ca-410_instruction_probe-dp_eng.pdf （官方）
 - The SCPI Consortium, SCPI 1999.0（`*OPC?` 等完成查詢的標準來源；本篇僅作對照，CA-410 不適用 SCPI）：https://www.ivifoundation.org/downloads/SCPI/scpi-99.pdf （官方標準 PDF）
+
+[^1]: ddcutil, Frequently Asked Questions（官方，見參考資料）。網頁文件，章節待查證。
+[^2]: Chroma ATE，Video Pattern Generator 2238 User's Manual，§3.2，PDF p.65（見參考資料）。

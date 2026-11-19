@@ -36,7 +36,7 @@ difficulty: intermediate
 
 ### 根因二：插值方法——trilinear 在灰階軸混進非灰階頂點
 
-tetrahedral 有一個可以直接推導的性質：當輸入 R＝G＝B（灰階）時，點落在立方體對角線上，6 個四面體都共用這條對角線，插值只用到對角線兩端的頂點（黑端與白端），權重是 (1 − t) 與 t。也就是灰階輸入只會用到灰階軸上的節點。trilinear 則固定混合 8 個頂點，灰階輸入也會混進 6 個非灰階頂點的值；LUT 在這些頂點有色偏修正時，灰階就會帶出一點色調。這也是 lcms 1.x 原始碼註解說 tetrahedral「只在 luma 落在對角線的色彩空間（RGB、CMY）上好用」的原因（見參考資料 5）。
+tetrahedral 有一個可以直接推導的性質：當輸入 R＝G＝B（灰階）時，點落在立方體對角線上，6 個四面體都共用這條對角線，插值只用到對角線兩端的頂點（黑端與白端），權重是 (1 − t) 與 t。也就是灰階輸入只會用到灰階軸上的節點。trilinear 則固定混合 8 個頂點，灰階輸入也會混進 6 個非灰階頂點的值；LUT 在這些頂點有色偏修正時，灰階就會帶出一點色調。這也是 tetrahedral「只在 luma 落在對角線的色彩空間（RGB、CMY）上好用」的原因[^1]。
 
 至於飽和色區，兩種方法誰誤差小取決於 LUT 本身的曲率，沒有一定的方向，要以 ΔE00 實測比較（待查證：本篇沒有可引用的公開量測資料）。ICC.1:2010 也沒有規定 CLUT 必須用哪一種插值：全文查無 tetrahedral 或 trilinear 字樣，10.8 只要求某一維只有 2 個資料點時，資料要讓線性插值得到正確結果（PDF p.67）。lcms2 對 3 個輸入通道預設用 tetrahedral，只有呼叫端指定 trilinear 旗標時才改用 trilinear，這是該專案的實作選擇（見參考資料 5）。
 
@@ -168,7 +168,7 @@ void lut_vblank_isr(void)
 
 ## 思考題
 
-OpenColorIO 的文件說 INTERP_DEFAULT 對 3D LUT 選 trilinear、INTERP_BEST 選 tetrahedral，並提醒這兩個「subject to change in minor releases」。問題：ICC.1:2010 (v4.3) 的 lut16Type／lutAToBType 條文，有沒有強制 CLUT 必須使用哪一種插值方法？如果沒有，為什麼多數 CMM 實作在 RGB 輸入時選 tetrahedral？提示：去查 ICC spec 的 10.8、10.10 與 Annex A，再對照 lcms 的公開原始碼註解。
+INTERP_DEFAULT 對 3D LUT 選 trilinear、INTERP_BEST 選 tetrahedral，而且這兩個「subject to change in minor releases」[^2]。問題：ICC.1:2010 (v4.3) 的 lut16Type／lutAToBType 條文，有沒有強制 CLUT 必須使用哪一種插值方法？如果沒有，為什麼多數 CMM 實作在 RGB 輸入時選 tetrahedral？提示：去查 ICC spec 的 10.8、10.10 與 Annex A，再對照 lcms 的公開原始碼註解。
 
 <details>
 <summary>方向提示（自己查完再看）</summary>
@@ -185,3 +185,6 @@ ICC.1:2010 沒有強制。10.8 規定 CLUT 尺寸（PDF p.66）、uInt16 除以 
 5. Little CMS 原始碼：lcms2 官方 repo 的 src/cmsintrp.c（3 個輸入通道預設 tetrahedral，指定 trilinear 旗標才改用 trilinear）：https://github.com/mm2/Little-CMS/blob/master/src/cmsintrp.c （官方開源）；lcms 1.x 的 cmsxform.c（RGB／CMY 選 tetrahedral 的註解）：https://www.askapache.com/pub/mozilla/modules/lcms/src/cmsxform.c （非官方鏡像，僅佐證實作選擇）
 
 > 提醒：scaler 晶片的 LUT RAM 容量、插值引擎能力與暫存器定義多屬 NDA 文件，本文相關地址皆為示意，實作時請對照手上的 NDA 文件與晶片 datasheet。
+
+[^1]: lcms 1.x 原始碼註解（原文寫法）；參考資料 5 為 lcms2 官方 repo 的 src/cmsintrp.c。lcms 1.x 的檔案與行號待查證。
+[^2]: OpenColorIO 官方文件 — Interpolation enum，見參考資料 4。網頁文件，章節待查證。

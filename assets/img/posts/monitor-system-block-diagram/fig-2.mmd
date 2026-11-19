@@ -1,0 +1,8 @@
+flowchart TD
+    GPU["Host<br/>GPU/Notebook"] -->|"HDMI/DP/Type-C"| IO["輸入介面"]
+    IO --> SC["Scaler / Mainboard"]
+    SC --> TCON["T-CON Board"] --> PANEL["Panel<br/>LCD/OLED"]
+    SC --> BLD["Backlight Driver"] -.-> PANEL
+    IO -.->|"VBUS/CC/SBU"| PD["PD Controller<br/>（獨立 IC）"]
+    PD -.->|"I²C/SMBus"| SC
+    PD -.->|"DP Lanes / USB SS"| SC

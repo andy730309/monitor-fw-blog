@@ -17,7 +17,7 @@ difficulty: intermediate
 
 ## 【前置知識準備】
 
-先把 daisy-chain 講成人話。**daisy-chain（菊花鏈）** 就是一條 DP 線從電腦進螢幕 A，再從螢幕 A 的 DP OUT 出去接螢幕 B。聽起來像延長線，其實不是：電腦送出的其實是「多串流」，螢幕 A 內部要扮一個 **branch device（分支設備）**，決定哪個畫面給自己、哪個畫面往下轉。這套機制叫 **MST（Multi-Stream Transport）**，VESA 官方 FAQ 就把 MST 說成 DisplayPort 獨有的多螢幕能力。
+先把 daisy-chain 講成人話。**daisy-chain（菊花鏈）** 就是一條 DP 線從電腦進螢幕 A，再從螢幕 A 的 DP OUT 出去接螢幕 B。聽起來像延長線，其實不是：電腦送出的其實是「多串流」，螢幕 A 內部要扮一個 **branch device（分支設備）**，決定哪個畫面給自己、哪個畫面往下轉。這套機制叫 **MST（Multi-Stream Transport）**；MST 是 DisplayPort 獨有的多螢幕能力[^1]。
 
 用大樓來類比：main link（主連結）是貨梯，搬的是影像；**AUX channel** 是總機的對講線，慢很多，搬的是設定與控制；**sideband message（邊帶訊息）** 就是總機轉交的紙條，電腦（source）問「下面還有幾台」、「這條路能載多重」，螢幕內的總機（branch）回條。拓樸發現、分配頻寬、下游埠的 EDID 讀取，全走這條對講線。
 
@@ -27,17 +27,15 @@ difficulty: intermediate
 2. **一張 sideband 便條最多 48 bytes**（Linux 的 `chunk[48]`、Xilinx 驅動的 `XDP_MAX_LENGTH_SBMSG 48`），超過要撕第二張，靠 header 的 somt（start of message transaction）與 eomt（end of message transaction）標示「這是第一張／這是最後一張」。
 3. **訊息寫在哪是固定的**：source 寫請求到 DPCD `0x1000`（DOWN_REQ），branch 寫回覆到 `0x1400`（DOWN_REP）；反向 branch 主動通知用 `0x1600`（UP_REQ），source 回覆寫 `0x1200`（UP_REP）。位址在 Linux `drm_dp.h` 與 Xilinx `xdppsu_hw.h` 兩家獨立文件完全一致。
 
-最後一個名詞：**IRQ HPD**。HPD（Hot Plug Detect）那條線除了「插了沒」，還會用短短一聲低脈衝當門鈴，提醒 source「留言板有新信」。AMD 的公開文件（PG199，引 VESA DP 1.2a）寫明：500 µs 到 1 ms 的脈衝算中斷請求，超過 2 ms 算拔線。門鈴按太短，會被按掉。
+最後一個名詞：**IRQ HPD**。HPD（Hot Plug Detect）那條線除了「插了沒」，還會用短短一聲低脈衝當門鈴，提醒 source「留言板有新信」。500 µs 到 1 ms 的脈衝算中斷請求，超過 2 ms 算拔線[^2]。門鈴按太短，會被按掉。
 
-```
-   PC (source)                     螢幕 A (branch)              螢幕 B (sink)
-  ┌──────────┐   DP cable      ┌──────────────────┐  DP OUT   ┌──────────┐
-  │ 拓樸管理  │◄══main link═══►│ 自己的畫面＋總機  │════════►│  第二台   │
-  │          │◄─AUX(控制)────►│ sideband 收發     │          │          │
-  └──────────┘                └──────────────────┘          └──────────┘
-      寫 0x1000 請求 ──────►
-      讀 0x1400 回覆 ◄──────  整筆寫完 → 置 0x2003 bit4 → HPD 門鈴(0.5–1ms)
-```
+![圖 1．MST daisy chain 的連接方式](/monitor-fw-blog/assets/img/posts/dp-mst-sideband-daisy-chain/fig-1.svg)
+
+圖 1．MST daisy chain 的連接方式
+
+![圖 2．sideband 請求、回覆與 HPD 門鈴](/monitor-fw-blog/assets/img/posts/dp-mst-sideband-daisy-chain/fig-2.svg)
+
+圖 2．sideband 請求、回覆與 HPD 門鈴
 
 ## 【系統廠真實血淚案例】
 
@@ -51,7 +49,7 @@ DVT 階段，一台 4K 機種要支援 daisy-chain，規格書寫「MST 多螢�
 
 **根因二：還沒收齊就拆信。** source 寫 `0x1000` 時每一筆 AUX 交易都會觸發 branch 的 buffer-ready 中斷（AMD PG422 公開文件的流程寫得很清楚：讀到 buffer ready → **continue to collect** → 收到完整訊息才 process）。舊韌體收到第一段就解析 body，CRC 錯就回 NAK（reply type 0x01），變成重傳循環，運氣好第三段到齊才過，運氣不好一起撞進 4 秒超時。
 
-**根因三：分配完沒簽收，第二台要等 3 秒。** `ALLOCATE_PAYLOAD`（0x11）之後，branch 要把 VC payload table（DPCD `0x800`–`0x8FF`，AMD PG299／PG300 公開文件載明範圍）更新完，再置 `DPCD 0x02C0` 的 bit0 與 bit1（PAYLOAD_TABLE_UPDATED、ACT HANDLED）。source 端等待上限是 **3 秒**（Linux `drm_dp_dpcd_poll_act_handled(..., 3000)`）。漏了這兩行的症狀就是「第二台黑畫面約 3 秒才跳出來」或「等不到直接掉線」。
+**根因三：分配完沒簽收，第二台要等 3 秒。** `ALLOCATE_PAYLOAD`（0x11）之後，branch 要把 VC payload table（DPCD `0x800`–`0x8FF`[^3]）更新完，再置 `DPCD 0x02C0` 的 bit0 與 bit1（PAYLOAD_TABLE_UPDATED、ACT HANDLED）。source 端等待上限是 **3 秒**（Linux `drm_dp_dpcd_poll_act_handled(..., 3000)`）。漏了這兩行的症狀就是「第二台黑畫面約 3 秒才跳出來」或「等不到直接掉線」。
 
 **根因四（附帶）：門鈴按太短。** IRQ HPD 規格區間是 500 µs–1 ms，舊韌體取 0.5 ms 下緣；Linux kernel 的註解還記載某 Type-C→DP 轉接器會濾掉小於約 540 µs 的短脈衝。脈寬卡在死角，換台機器就「好」了，這就是最典型的 interop 假象。順帶一提：Linux 有 `poll_hpd_irq` 回呼的平台會自己補償（50 ms 週期 poll），只吃中斷的平台就硬扛 4 秒超時——同一份韌體在不同 source 上表現不同，這坑沒儀器挖不出來。
 
@@ -119,3 +117,7 @@ RX 側是鏡像原則：收齊 msg_len、驗過 body CRC，才准 dispatch，未
 9. DisplayPort 官方 FAQ（VESA）（DP 2.1b 認證最低需求、compliance program、MST 定位）— 官方（VESA）：https://www.displayport.org/faq/
 
 提醒：sideband message 完整定義（§2.11）、PBN／available bandwidth 表、ACT trigger 細節都在 VESA DisplayPort Standard 會員文件裡；本文只依公開來源撰寫，開發時請對照手上 NDA 文件。AMD 的三份文件頁面需 JavaScript，本篇依搜尋引擎引用的原文片段核對，完整內容待開啟瀏覽器複核（待查證）。文中程式碼的 chip-specific API 與函式名皆為示意（示意地址，非實際晶片規格），DPCD 位址則為已查證的公開定義。
+
+[^1]: DisplayPort 官方 FAQ（VESA），見參考資料 9；參考資料 8（VESA DisplayPort 2.1 新聞稿）亦有相同說法。網頁文件，章節待查證。
+[^2]: AMD PG199 DisplayPort TX Subsystem: Hot Plug Detection（引 VESA DP 1.2a），見參考資料 6。網頁文件，章節待查證。
+[^3]: AMD PG299 DisplayPort TX Subsystem: Enabling MST（見參考資料 5）與 PG300。PG300 未列入參考資料；兩者章節待查證。

@@ -1,0 +1,4 @@
+flowchart TD
+    GPU["GPU（DPTX）"] -->|"DP AUX + Main-Link（第一段）"| IN["DP IN Adapter<br/>（host router）"]
+    IN -->|"USB4 tunnel：AUX 與 video 被封裝"| OUT["DP OUT Adapter<br/>（dock）"]
+    OUT -->|"DP AUX + Main-Link（第二段）"| MON["Monitor（DPRX）"]

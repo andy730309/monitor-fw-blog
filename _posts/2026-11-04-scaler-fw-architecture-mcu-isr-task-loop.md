@@ -23,7 +23,7 @@ Monitor 韌體裡的中斷服務常式（Interrupt Service Routine，ISR）就�
 
 Task 則是內場。它有自己的堆疊與優先權，可以被排程器切換，也可以合法地阻塞等待。影像路徑的 task 要求每張影格準時，OSD 與按鍵的 task 要求反應夠快，DDC/CI 的 task 則是背景工作。把這三種即時性混在同一個 super-loop 裡，就會出現「明明每個功能都寫對了，湊在一起卻不穩」的現象。
 
-還有一個容易被忽略的角色：記憶體。靜態配置（static allocation）像店裡事先隔好的固定座位，數量固定、位置固定，不會臨時找不到位子；動態配置（`malloc`／`free`）像把桌椅搬來搬去，短期很方便，長期會留下零碎空間。FreeRTOS 官方文件把這個取捨講得很明白：靜態配置更具確定性、移除配置失敗的處理需求、也移除 heap 碎片化的風險；代價是必須在編譯期把記憶體規劃清楚（參考資料 2，3.1.3）。
+還有一個容易被忽略的角色：記憶體。靜態配置（static allocation）像店裡事先隔好的固定座位，數量固定、位置固定，不會臨時找不到位子；動態配置（`malloc`／`free`）像把桌椅搬來搬去，短期很方便，長期會留下零碎空間。靜態配置更具確定性、移除配置失敗的處理需求、也移除 heap 碎片化的風險；代價是必須在編譯期把記憶體規劃清楚[^1]。
 
 ## 技術核心
 
@@ -230,3 +230,5 @@ static void watchdog_task(void *arg)
 3. ddcutil Documentation, Performance and Tuning Options（官方文件；引述 DDC/CI 規範的 40–200 ms 等待；原始規範頁碼待查證）：https://www.ddcutil.com/performance_options/
 4. Arm, Cortex-M3 Devices Generic User Guide, Nested Vectored Interrupt Controller（官方文件）：https://developer.arm.com/documentation/dui0552/latest/cortex-m3-peripherals/nested-vectored-interrupt-controller
 5. Arm, Armv8-M Exception Model User Guide, Exception priority level definitions（官方文件）：https://support.arm.com/documentation/107706/0100/Exceptions-and-interrupts-overview/Exception-priority-level-definitions
+
+[^1]: FreeRTOS Kernel Book, Chapter 3 Heap Memory Management，§3.1.3（官方，見參考資料 2）。網頁文件，無 PDF 頁碼。

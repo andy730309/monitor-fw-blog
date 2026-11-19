@@ -10,7 +10,6 @@ roadmap_stage: foundations
 sources_checked: 2026-11-19
 description: "EDID 是顯示器的身分證，告訴來源端支援哪些解析度、色域與時序。本文先講 HDMI 讀取流程與 Block 0 地圖，再用 edid-decode 拆解 Base Block 與 CTA-861 擴充區塊，並對照 HDMI 用 1.3、DP 用 1.4。"
 difficulty: beginner
-mermaid: true
 ---
 > **重點摘要**：EDID 是 VESA 定義的資料結構，存在顯示器的 EEPROM，來源端透過 DDC 讀取後才知道螢幕支援哪些時序與功能。HDMI 口的前 128 位元組須為 EDID 1.3（HDMI 1.4 PDF p.161）；DisplayPort 的 box-to-box 接收端則須支援 EDID 1.4（DP 2.0 PDF p.996）。韌體工程師在 bring-up、認證送測、客訴分析與產線都會用到它。下面先給讀取流程與 Block 0 地圖，再用 edid-decode 拆一份示意 EDID，並整理常見問題。
 
@@ -44,16 +43,7 @@ EDID 是 VESA 定義的標準資料結構，儲存在顯示器內部的 I²C EEP
 
 對 HDMI 來說，讀取順序不是「上電後直接掃 I²C」這麼簡單。規格把 HPD 與來源端的＋5V 綁在一起，即使接收端（sink）關機或待命，只要來源端有送＋5V，接收端仍應在條件滿足時讓 EDID 可被讀到。
 
-```mermaid
-sequenceDiagram
-  participant Src as 來源端
-  participant Sink as 接收端
-  Src->>Sink: 送出 +5V
-  Note over Sink: 關機或待命時仍應讓 EDID 可讀
-  Sink->>Sink: 確認 EDID 可讀
-  Sink->>Src: 拉高 HPD
-  Src->>Sink: 經 DDC 讀取 EDID
-```
+![圖 1．HDMI 讀取 EDID 的順序（依 HDMI 1.4 §8.4.4、§8.5，PDF p.168 改寫）](/monitor-fw-blog/assets/img/posts/edid-intro-edid-decode/fig-1.svg)
 
 圖 1．HDMI 讀取 EDID 的順序（依 HDMI 1.4 §8.4.4、§8.5，PDF p.168 改寫）
 
@@ -325,22 +315,29 @@ Checksum: 0x73
 
 ## 圖解
 
-### DTD 18 位元組位元圖
+### DTD 18 位元組欄位配置
 
-圖 2．DTD 18 位元組欄位配置（依 E-EDID A2 Table 3.21，PDF p.33 改寫，示意）
+表 2．DTD 18 位元組欄位配置（依 E-EDID A2 Table 3.21，PDF p.33 改寫，示意）
 
-```
-Byte index: left is 00h, right is 11h（共 18 欄）
-      ┌──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┐
-      │ Pixel Clock (LE, 10 kHz)    │ Hact │ Hblk │H/Hb│
-      │                             │  lsb │  lsb │ msb│
-      ├─────────────────────────────┼──────┼──────┼────┤
-      │ Vact lsb │ Vblk lsb │V/Vb msb│Hsofs │Hspls │V/H │
-      │          │          │ msb    │ lsb  │ lsb  │msb │
-      ├──────────┼──────────┼────────┼──────┼──────┼────┤
-      │H Size lsb│V Size lsb│H/V msb │H Bor │V Bor │Flags│Pad│
-      └──────────┴──────────┴────────┴──────┴──────┴────┘
-```
+| 位址 | 長度 | 欄位 |
+| --- | --- | --- |
+| 00h–01h | 2 | Pixel Clock（LE，10 kHz） |
+| 02h | 1 | Hact lsb |
+| 03h | 1 | Hblk lsb |
+| 04h | 1 | Hact／Hblk msb |
+| 05h | 1 | Vact lsb |
+| 06h | 1 | Vblk lsb |
+| 07h | 1 | Vact／Vblk msb |
+| 08h | 1 | H sync offset lsb |
+| 09h | 1 | H sync pulse width lsb |
+| 0Ah | 1 | V sync offset／pulse width lsb |
+| 0Bh | 1 | H／V sync offset 與 pulse width msb |
+| 0Ch | 1 | H Size lsb |
+| 0Dh | 1 | V Size lsb |
+| 0Eh | 1 | H／V Size msb |
+| 0Fh | 1 | H Border |
+| 10h | 1 | V Border |
+| 11h | 1 | Flags |
 
 Flags（byte 16）的位元定義見 E-EDID A2 Table 3.22。常見要看的是：bit 7 隔行、bit 2 垂直極性、bit 1 水平極性。bit 0 不要再當成 Preferred Timing 旗標（那個在 Block 0 的 18h bit 1，E-EDID A2 PDF p.27）。
 

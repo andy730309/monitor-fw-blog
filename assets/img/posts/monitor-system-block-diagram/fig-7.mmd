@@ -1,0 +1,6 @@
+flowchart TD
+    ACIN["AC In"] --> PSU["AC/DC PSU"] --> RAIL["+12V/+5V/+3.3V<br/>主機板電源軌"]
+    RAIL --> SCORE["Scaler Core"] --> TVDD["T-CON VDD"] --> PVDD["Panel VDDIO/<br/>AVDD/VGH/VGL"]
+    RAIL --> BLD["Backlight Drv"] --> LEDA["LED Array"] --> LD["Local Dimming<br/>(zones)"]
+    RAIL --> PDC["PD Controller"] --> BB["Buck-Boost"] --> VB["VBUS 5~20V"]
+    BB --> PORT["Type-C Port"] --> NB["Notebook 充電"]

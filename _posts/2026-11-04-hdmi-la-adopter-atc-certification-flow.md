@@ -179,7 +179,7 @@ unsigned char UserApp_CanSwitchEdid(void)
 
 ## 思考題
 
-HDMI 官網 Testing Policies 說「每種 Licensed Product type 的第一個產品必須送 ATC，同 type 通過後續不再強制」。那麼問題來了：你的公司已經有一台通過 ATC 的 monitor（sink type），現在開發新機種，換了新的 scaler 平台、EDID 架構整個改掉、還新增了 HDMI 2.1 功能宣告。合約上你可以不重送 ATC，但從互操作風險與客訴成本的角度，你會送還是不送？你的判斷依據是哪幾條？（提示：想想 PHY、link training 實作與 EDID 宣告哪個變了；再想想官網那句「Adopter 對互操作自負全責」。）
+「每種 Licensed Product type 的第一個產品必須送 ATC，同 type 通過後續不再強制」[^1]。那麼問題來了：你的公司已經有一台通過 ATC 的 monitor（sink type），現在開發新機種，換了新的 scaler 平台、EDID 架構整個改掉、還新增了 HDMI 2.1 功能宣告。合約上你可以不重送 ATC，但從互操作風險與客訴成本的角度，你會送還是不送？你的判斷依據是哪幾條？（提示：想想 PHY、link training 實作與 EDID 宣告哪個變了；再想想官網那句「Adopter 對互操作自負全責」。）
 
 ## 參考資料
 
@@ -192,3 +192,5 @@ HDMI 官網 Testing Policies 說「每種 Licensed Product type 的第一個產�
 5. HDMI Forum 官網：Join Us（年費 USD $12,500、Technical Working Group 參與資格、申請步驟）— https://hdmiforum.org/join-us/ （官方）
 
 待查證項目：Adopter 年費與 per-unit royalty 費率（官網文件需填表單取得）、ODM 以客戶名義送測的 affiliate／embedded licensee 程序、HDMI 2.1/2.2 CTS 測試項細節與 CDF 表單格式（需 Adopter Extranet）、各 ATC 費用與 lead time。官網 Adopter 數字同頁兩處不一致（almost 1700 與 over 1900），引用時不要寫死。
+
+[^1]: HDMI LA 官網：Testing Policies，見參考資料 4。網頁文件，章節待查證。

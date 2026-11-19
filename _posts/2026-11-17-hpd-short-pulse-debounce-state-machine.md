@@ -23,7 +23,7 @@ difficulty: intermediate
 
 新手第一個坑就在這裡：如果 FW（韌體，firmware）想通知事件，卻把 HPD 拉低太久，source 會當成拔線，畫面閃一下；反過來，脈衝太短（短於 0.25 ms），source 可以直接忽略（PDF p.717），事件通知就送不出去。同一條訊號線，兩種語意，脈寬決定一切。
 
-第二個觀念是 debounce（去抖動）。螢幕這端要 debounce 的不是 HPD（HPD 是自己輸出的），而是「source 有沒有接上」的偵測輸入，例如線材或 source 電源偵測腳，具體用哪一支依 scaler 而定（待查證）。機械接點在插拔瞬間會來回彈幾下，debounce 的目的不是「延遲一下再讀」，而是「等到訊號和周邊電路都進入可以服務的狀態」。source 那端也有 debounce：DP 2.0 建議 HPD 拉高要連續 100 ms 才確認為連接，而且不要對 IRQ_HPD 與 2–100 ms 的拔插脈衝做 debounce（PDF p.381）。Linux kernel 的 `wait_hpd_asserted` 回呼文件也說，這個函式可能等得比指定的 `wait_us` 還久，因為 DP controller 的 debouncing time 可能很長，重點是回傳成功時代表已經可以送 AUX（Auxiliary Channel，輔助通道）交易。
+第二個觀念是 debounce（去抖動）。螢幕這端要 debounce 的不是 HPD（HPD 是自己輸出的），而是「source 有沒有接上」的偵測輸入，例如線材或 source 電源偵測腳，具體用哪一支依 scaler 而定（待查證）。機械接點在插拔瞬間會來回彈幾下，debounce 的目的不是「延遲一下再讀」，而是「等到訊號和周邊電路都進入可以服務的狀態」。source 那端也有 debounce：DP 2.0 建議 HPD 拉高要連續 100 ms 才確認為連接，而且不要對 IRQ_HPD 與 2–100 ms 的拔插脈衝做 debounce（PDF p.381）。Linux kernel 的 `wait_hpd_asserted` 回呼可能等得比指定的 `wait_us` 還久，因為 DP controller 的 debouncing time 可能很長，重點是回傳成功時代表已經可以送 AUX（Auxiliary Channel，輔助通道）交易[^1]。
 
 ## 技術核心
 
@@ -182,3 +182,5 @@ void hpd_request_replug(int port)
 3. ddcutil 官方文件「DDC and DisplayPort」（DP 無獨立 SCL/SDA、DDC 走 I2C-over-AUX，官方）：https://www.ddcutil.com/displayport/
 4. VESA DisplayPort 官方 FAQ（DP 2.1b 概況、LTTPR／AdaptiveSync／Panel Replay 認證門檻，官方）：https://www.displayport.org/faq/
 5. VESA DisplayPort Standard Version 2.0（VESA 會員文件，本文只引用頁碼）：HPD 與 IRQ_HPD 時序（PDF p.65、p.717、p.719）、source 端 HPD debounce（PDF p.381）、AUX 300 µs 回覆（PDF p.382）。2.1b 的差異待查證。
+
+[^1]: Linux kernel `wait_hpd_asserted` 回呼的說明文件。文中未指明出處，推定為參考資料 1「Mode Setting Helper Functions」的 Display Port Helper 章節，待查證。

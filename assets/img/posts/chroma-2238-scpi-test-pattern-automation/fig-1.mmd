@@ -1,0 +1,5 @@
+flowchart TD
+    T["送出 RUN TIM"] --> G1["Gate 1：DDC/CI 心跳成功<br/>（DUT 可服務）"]
+    G1 --> P["送出 RUN PTN"] --> G2["Gate 2：DDC/CI 心跳仍成功<br/>（保守確認）"]
+    G2 --> G3["Gate 3：量測值連續收斂<br/>（畫面真的穩了）"]
+    G3 --> W["寫入結果<br/>（帶 timing/pattern/module/serial/fw hash）"]

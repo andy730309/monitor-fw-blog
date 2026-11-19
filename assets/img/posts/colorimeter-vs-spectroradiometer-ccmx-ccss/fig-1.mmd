@@ -1,0 +1,11 @@
+flowchart TB
+    subgraph S["光譜儀"]
+        direction TB
+        S1["光"] --> S2["分光"] --> S3["各波長響應"] -->|"（軟體）"| S4["× Standard Observer"] --> S5["XYZ"]
+    end
+    subgraph C["色度計"]
+        direction TB
+        C1["光"] --> C2["濾片×3"] --> C3["sensor×3"] -->|"（硬體）"| C4["× 3x3 矩陣"] --> C5["XYZ"]
+        N["這個矩陣假設了<br/>「某種典型面板光譜」"] -.- C4
+    end
+    style N fill:#fff8e1,stroke:#d4a72c

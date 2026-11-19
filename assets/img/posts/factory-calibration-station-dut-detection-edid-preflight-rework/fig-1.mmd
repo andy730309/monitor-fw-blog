@@ -1,0 +1,13 @@
+flowchart TD
+    A["開始"] --> B{"DUT 掛載檢測"}
+    B -- 失敗 --> C["標記 rework: DUT_presence_check"]
+    B -- 成功 --> D{"EDID 前置檢查"}
+    D -- 失敗 --> E["標記 rework: EDID_preflight_check"]
+    D -- 成功 --> F{"DDC/CI 寫入測試"}
+    F -- 連續 3 次失敗 --> G["標記 rework: DDC/CI_write_timeout"]
+    F -- 成功 --> H["校正通過，進入下一階段"]
+    C --> I["跳至下一個 DUT"]
+    E --> I
+    G --> I
+    I --> J["下一個 DUT"]
+    J --> B

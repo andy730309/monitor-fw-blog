@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant Sink
+    participant Src as Source(monitor)
+    participant Cable as cable
+    Sink->>Src: EPR_Mode_Enter
+    Src->>Sink: Enter Acknowledged
+    Src->>Cable: Discover Identity (SOP')
+    Cable->>Src: 50V/5A 宣告
+    Src->>Sink: Enter Succeeded
+    Src->>Sink: EPR_Source_Capabilities
+    Sink->>Src: EPR_Request
+    Src->>Sink: Accept
+    Src->>Sink: PS_RDY
+    loop 週期
+        Sink->>Src: EPR_KeepAlive
+        Src->>Sink: KeepAlive_ACK
+    end

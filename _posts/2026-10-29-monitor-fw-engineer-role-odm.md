@@ -19,7 +19,6 @@ faq:
   - q: "Factory Calibration 站通常包含哪些關鍵步驟？"
     a: "1) 燒錄 FW/EDID/序號 2) 暖機 3) 量測原生 Gamma/白平衡/色域 4) 計算並寫入校正參數 5) 量測驗證 ΔE 6) 燒錄 Uniformity/LUT（若支援）7) 最終功能測試 8) 標籤列印/追溯資料上傳 MES。"
 difficulty: beginner
-mermaid: true
 ---
 > **重點摘要**：IC 設計廠開發 Scaler SoC 的 SDK，系統廠／ODM 的韌體工程師則負責把 SDK 移植、整合、客製化、除錯、認證到量產，交付一台成品顯示器。本文依 EVT、DVT、PVT、MP 四個專案階段，說明每天的工作內容。
 
@@ -101,51 +100,9 @@ mermaid: true
 
 ## 圖解：系統廠韌體工程師的互動網絡
 
-```mermaid
-graph TD
-    FW[顯示器韌體工程師] --> Scaler[Scaler SoC SDK<br/>MediaTek/Realtek/Novatek]
-    FW --> Panel[面板廠<br/>時序/電源序列/OD/保護]
-    FW --> HW[硬體工程師<br/>Schematic/Layout/Power/EMC]
-    FW --> ME[機構工程師<br/>按鍵/ジョイスティ/散熱/組裝]
-    FW --> Optical[光學/色彩工程師<br/>Calibration/Uniformity/HDR]
-    FW --> Test[測試/自動化工程師<br/>HIL/Regression/Cal Station]
-    FW --> FAE[FAE/客訴處理<br/>RMA/8D/Field Issue]
-    FW --> PM[專案經理<br/>Schedule/Risk/Gate]
-    FW --> Cert[認證實驗室<br/>VESA/HDMI/USB-IF/DisplayHDR]
-    
-    style FW fill:#1e3a5f,color:#fff
-    style Scaler fill:#2d5a3e,color:#fff
-    style Panel fill:#5a3e2d,color:#fff
-    style HW fill:#3e2d5a,color:#fff
-    style ME fill:#2d5a5a,color:#fff
-    style Optical fill:#5a2d4e,color:#fff
-    style Test fill:#4e5a2d,color:#fff
-    style FAE fill:#5a4e2d,color:#fff
-    style PM fill:#2d3e5a,color:#fff
-    style Cert fill:#4a2d5a,color:#fff
-```
+![圖 1．顯示器韌體工程師的互動對象](/monitor-fw-blog/assets/img/posts/monitor-fw-engineer-role-odm/fig-1.svg)
 
-**文字版（ASCII）備份：**
-
-```
-+-------------------------+
-|  顯示器韌體工程師 (核心)   |
-+-------------------------+
-         |    |    |    |    |    |    |    |    |    |
-         v    v    v    v    v    v    v    v    v    v
-  +--------+ +--------+ +--------+ +--------+ +--------+
-  | Scaler | | 面板廠 | |   HW   | |   ME   | | 光學/  |
-  |  SDK   | |時序/保護| |原理圖/ | |按鍵/散熱| | 色彩  |
-  +--------+ +--------+ |Layout  | +--------+ |校正/HDR|
-                        |EMC/電源|            +--------+
-                        +--------+
-         |    |    |    |    |    |    |    |    |    |
-         v    v    v    v    v    v    v    v    v    v
-  +--------+ +--------+ +--------+ +--------+ +--------+
-  | 測試/  | | FAE/   | |  PM    | | 認證   | | 客戶/  |
-  | 自動化 | | 客訴   | |排程/風險| | 實驗室 | | 品牌商 |
-  +--------+ +--------+ +--------+ +--------+ +--------+
-```
+圖 1．顯示器韌體工程師的互動對象
 
 ---
 

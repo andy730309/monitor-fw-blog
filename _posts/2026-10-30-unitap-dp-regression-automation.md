@@ -20,7 +20,7 @@ difficulty: intermediate
 
 **HIL（Hardware-in-the-Loop，硬體在迴路）測試台**：把真的硬體（你的螢幕 DUT）接上真的儀器（訊號產生器/分析儀），用程式控制整輪測試。類比：不是在紙上驗算菜譜，是真的開火試煮一桌菜，而且是機器人幫你煮、整晚煮。
 
-**UCD 系列與 UniTAP**：Unigraf 的 UCD 系列是 DisplayPort/HDMI/USB-C 的訊號產生與分析儀器；官方授權工具頁寫明 UCD-500 Gen2/Gen3 是 VESA DP 2.1 Link Layer CTS 的 reference source/sink，支援到 20 Gbps lane rate，且提供 API/scripting、可 log/analyze link packets 與 AUX transactions。UniTAP 則是 Unigraf 的 Python 測試自動化平台（官方頁原文：Python-based Test Automation Platform），拿來把 UCD 系列整合進你自己的測試系統。官方建議的流程很明確：先在 UCD Console（圖形介面）把 test 參數調好、存進 test library，再由 UniTAP 執行。
+**UCD 系列與 UniTAP**：Unigraf 的 UCD 系列是 DisplayPort/HDMI/USB-C 的訊號產生與分析儀器；UCD-500 Gen2/Gen3 是 VESA DP 2.1 Link Layer CTS 的 reference source/sink，支援到 20 Gbps lane rate，且提供 API/scripting、可 log/analyze link packets 與 AUX transactions[^1]。UniTAP 則是 Unigraf 的 Python 測試自動化平台（Python-based Test Automation Platform[^2]），拿來把 UCD 系列整合進你自己的測試系統。建議的流程很明確：先在 UCD Console（圖形介面）把 test 參數調好、存進 test library，再由 UniTAP 執行[^2]。
 
 **Flaky test（不穩定測試）**：同一份程式、同一份硬體，有時候過、有時候不過，沒有明確因果。工程上要先建立一個觀念：flaky 比穩定 fail 更危險。穩定 fail 至少會逼人修；flaky 會養出「rerun 三次總會綠」的壞習慣，最後整個 CI 的紅燈都沒人理，真 bug 藏在裡面一起過夜。
 
@@ -95,7 +95,7 @@ void Dp_Sink_HandleHpd(bool cable_in)
 ### 1. 看懂這個 Bug 的關鍵暫存器/訊號線是哪一個？
 
 - **HPD（Hot Plug Detect）訊號線與 DUT 端 debounce**：自動化 flaky 排查的第一順位。先問「這個 test 之前發生了什麼插拔/斷電」，再看 settle 夠不夠。
-- **DPCD 的 Link Status / lane status**：LT fail 時先讀 DPCD 看 CR/EQ 哪段掛的，不要只看儀器 pass/fail 灌了事；UCD-500 官方頁載明可 log/analyze link packets 與 AUX transactions，這些 log 才是根因證據。
+- **DPCD 的 Link Status / lane status**：LT fail 時先讀 DPCD 看 CR/EQ 哪段掛的，不要只看儀器 pass/fail 灌了事；UCD-500 可 log/analyze link packets 與 AUX transactions[^1]，這些 log 才是根因證據。
 - **DDC/CI 的 VCP 60h（Input Source）與機台版本 feature（OEM 自訂）**：bench 開跑前先確認 DUT 在哪個輸入源、跑哪個 build，兩個都錯的話後面全是垃圾資料。
 
 ### 2. 未來寫 Code 或驗證時，如何避免重蹈覆轍？
@@ -108,7 +108,7 @@ void Dp_Sink_HandleHpd(bool cable_in)
 
 ### 3. 思考題
 
-Unigraf 官方頁寫明 UCD-500 Gen2/Gen3 是 VESA DP 2.1 Link Layer CTS 授權工具、支援 up to 20 Gbps lane rate，且「UI for desktop use, API and scripting for Compliance Test automation」。請查 VESA DisplayPort CTS 與你手上的 UniTAP SDK 文件：
+UCD-500 Gen2/Gen3 是 VESA DP 2.1 Link Layer CTS 授權工具、支援 up to 20 Gbps lane rate，且「UI for desktop use, API and scripting for Compliance Test automation」[^3]。請查 VESA DisplayPort CTS 與你手上的 UniTAP SDK 文件：
 
 1. CTS 裡 source/sink/LTTPR 各自的 link training 測試項目，哪幾項會被「DUT 端 HPD debounce 未過就啟動」影響？為什麼 LTTPR 額外敏感？（提示：LTTPR 的 AUX 通路在 link 沒穩前就可能被 source 掃到。）
 2. 你的 nightly 若把 HBR3 與 UHBR10 混在同一 test session，中間不做 cold start，除了 HPD 狀態殘留，還可能踩到什麼 DPCD 狀態？（提示：查 DPCD 的 Link Rate / Lane Count 設定與 training pattern 選擇。）
@@ -123,3 +123,7 @@ Unigraf 官方頁寫明 UCD-500 Gen2/Gen3 是 VESA DP 2.1 Link Layer CTS 授權�
 5. ddcutil Documentation — Command Overview（detect/capabilities/getvcp/setvcp/scs；--display/--bus 選擇 display）— 官方（工具專案文件）：https://www.ddcutil.com/commands/
 
 提醒：UCD/UniTAP 的詳細 Python API 簽名、test case 名稱與 DP CTS 逐項對應表需對照 Unigraf SDK 手冊與 VESA CTS 會員文件，本文儀器 API 命名皆為示意；DUT 端 HPD debounce 時間依平台 NDA 或實測，勿直接抄文中的示意值。
+
+[^1]: VESA — Authorized Test Tools（Unigraf UCD-500 Gen2/Gen3），見參考資料 3。網頁文件，章節待查證。
+[^2]: Unigraf — Test Automation，見參考資料 1。網頁文件，章節待查證。
+[^3]: 原文寫「Unigraf 官方頁」，未指明哪一頁；參考資料 3（VESA Authorized Test Tools）列有相同描述。實際頁面與章節待查證。

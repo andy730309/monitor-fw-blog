@@ -37,7 +37,7 @@ difficulty: intermediate
 
 最常見的死法：工程師之前寫過 SCPI 儀器的遠端控制，把「送 `*IDN?`、等 query 回應」的框架直接套到 CA-410。CA-410 不認得這套語言，serial timeout 一路炸，然後大家開始懷疑儀器壞了、線材接觸不良、USB 轉接板有鬼。
 
-正確的分層觀念：訊號產生器走 SCPI/IEEE 488.2 框架，CA-410 走 KM 自有協定，兩者的驅動層不能共用同一個「query-response」抽象。CA-410 的完整命令字串定義在 KM 的「Display Color Analyzer CA-410 Communication Specifications Ver 1.13」，這份文件要在 KM 官網同意使用條款後才能下載，條款限制只能用於開發搭配 CA-410 的應用軟體，商用需 KM 另外授權。instruction manual 也寫明：從 PC 以 RS-232C 控制 probe 時，使用隨附的 SDK（CA-SDK2）（CA-410 instruction manual PDF p.19）。自己寫驅動前，先評估 SDK 能不能滿足需求。本篇程式碼的命令字串一律以佔位常數表示並標「待查證」，你實作時請以手上那份通訊規格為準（並對照你的 NDA 授權範圍）。
+正確的分層觀念：訊號產生器走 SCPI/IEEE 488.2 框架，CA-410 走 KM 自有協定，兩者的驅動層不能共用同一個「query-response」抽象。CA-410 的完整命令字串定義在 KM 的「Display Color Analyzer CA-410 Communication Specifications Ver 1.13」，這份文件要在 KM 官網同意使用條款後才能下載，條款限制只能用於開發搭配 CA-410 的應用軟體，商用需 KM 另外授權。從 PC 以 RS-232C 控制 probe 時，使用隨附的 SDK（CA-SDK2）[^1]。自己寫驅動前，先評估 SDK 能不能滿足需求。本篇程式碼的命令字串一律以佔位常數表示並標「待查證」，你實作時請以手上那份通訊規格為準（並對照你的 NDA 授權範圍）。
 
 驅動層的骨架長這樣（Python）：
 
@@ -352,3 +352,5 @@ CA-410 的白點色度精度表為什麼要用「亮度」分檔（>0.01 cd/m² 
 - sRGB 標準（IEC 61966-2-1）：D65 白點 x=0.3127, y=0.3290（官方標準；數字為該標準公開內容）
 
 提醒：HDMI/DP 規格全文與儀器通訊規格多需會員、授權或 NDA，本文只依公開資訊撰寫；實作時請對照你手上的授權文件與 NDA 範圍。
+
+[^1]: Konica Minolta CA-410 instruction manual（Probe + CA-DP40），PDF p.19（見參考資料）。

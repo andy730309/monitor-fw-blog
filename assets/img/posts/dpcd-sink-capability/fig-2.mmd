@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant Source
+    participant AUX_CH
+    participant Sink
+    Note over Source,Sink: 承圖 1（Link Unstable or First Plug）
+    loop Clock Recovery (CR)
+        Source->>Sink: Transmit TPS1 pattern (Main Link)
+        Source->>AUX_CH: Read 00202h-00203h (Lane Status)
+        AUX_CH-->>Source: LANEx_CR_DONE
+    end
+    Source->>AUX_CH: Write 00102h (TPS2/3/4)
+    loop Channel Equalization (EQ)
+        Source->>Sink: Transmit TPS2/3/4 pattern
+        Source->>AUX_CH: Read 00202h-00204h
+        AUX_CH-->>Source: CHANNEL_EQ_DONE, SYMBOL_LOCKED, INTERLANE_ALIGN_DONE
+    end
+    Source->>AUX_CH: Write 00102h = 00h (training 結束)
+    Note over Source,Sink: Start Video Stream (Main Link)

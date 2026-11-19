@@ -42,7 +42,7 @@ for (int k = 0; k < 9; k++) {
 
 根因有三層：
 
-1. 矩陣是線性變換，只能把三個原色頂點拉到目標；cube 內部的飽和度與色相誤差只能線性縮放。LCD cell 的非線性 crosstalk（R 在低亮度漏到 G 的量跟高亮度不一樣）矩陣天生修不了——這是 Poynton 與 Barsotti 論文裡講得很直白的事。
+1. 矩陣是線性變換，只能把三個原色頂點拉到目標；cube 內部的飽和度與色相誤差只能線性縮放。LCD cell 的非線性 crosstalk（R 在低亮度漏到 G 的量跟高亮度不一樣）矩陣天生修不了[^1]。
 2. color matrix 的輸入必須是線性光。少了 input 1D LUT 做 de-gamma，矩陣等於在錯誤的座標系上做色域轉換，暗部與中間調整體偏移。
 3. bit depth 預算不足。Portrait Displays 的公開白皮書給的經驗值：LUT 精度至少比視訊輸入高 2 bit，pipeline 運算至少再高 2 bit。10-bit 輸入配 10-bit LUT，插值後的連續性被量化切碎，表現就是 ramp banding。
 
@@ -94,3 +94,5 @@ DisplayHDR CTS 1.2 對 Luminance and White Point Accuracy 用 ΔITP 容差（50 
 - VESA DisplayHDR Performance Criteria（CTS 1.2 摘要）: https://displayhdr.org/performance-criteria/
 - C. Poynton, J. Barsotti, "Innovations in 3-D colour LUTs for display calibration": https://doi.org/10.1049/ib.2014.0036
 - NVIDIA GTC 2010 海報（tetrahedral interpolation）: https://www.nvidia.com/content/GTC/posters/2010/V01-Real-Time-Color-Space-Conversion-for-High-Resolution-Video.pdf
+
+[^1]: C. Poynton、J. Barsotti，〈Innovations in 3-D colour LUTs for display calibration〉，doi:10.1049/ib.2014.0036（見參考資料）。章節、頁碼待查證。

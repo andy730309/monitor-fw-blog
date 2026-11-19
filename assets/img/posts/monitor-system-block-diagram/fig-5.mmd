@@ -1,0 +1,8 @@
+flowchart LR
+    BLctrl["Scaler Backlight Control<br/>PWM/DC + Local Dimming Data"] --> BuckBoost
+    subgraph BLdrv["Backlight Driver"]
+        BuckBoost["Buck/Boost LED Driver"] --> Zones["Local Dimming Zones<br/>(Mini-LED: 數百~上千)"]
+        Protection["OVP/OCP/OTP<br/>Thermal Protection"]
+    end
+    Zones --> LED["LED Backlight<br/>(LCD only)"]
+    LED -.-> TFT["TFT Matrix + Color Filter"]

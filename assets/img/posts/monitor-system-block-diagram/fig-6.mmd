@@ -1,0 +1,14 @@
+flowchart LR
+    USBC["Type-C Receptacle"] -.->|"VBUS/CC/SBU"| PDctrl
+    subgraph PDctrl["PD Controller (獨立 IC)"]
+        PE["Policy Engine / DPM"]
+        MUX["High-Speed MUX/Re-driver"]
+        AUXdet["AUX/HPD Detect"]
+        BB["Billboard Device"]
+        PE --> MUX
+        PE --> AUXdet
+        PE --> BB
+    end
+    PDctrl -.->|"I²C/SMBus"| MCU["MCU / RTOS"]
+    MUX -.->|"DP Lanes"| PanelTx["Panel Tx"]
+    MUX -.->|"USB SS"| Hub["USB Hub / Billboard / KVM"]

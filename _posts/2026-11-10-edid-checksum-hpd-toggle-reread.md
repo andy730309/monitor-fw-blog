@@ -23,7 +23,7 @@ difficulty: intermediate
 
 - **EDID 的長相**：Base Block 固定 128 bytes，開頭 8 bytes 是固定的 `00 FF FF FF FF FF FF 00`，像身分證的浮水印。byte 126 記錄「後面還有幾個 extension block」（extension flag），byte 127 是 checksum（E-EDID 規則，見參考資料 1、2）。
 - **checksum 的規則**：每個 128-byte block 的最後一個 byte（byte 127），要讓「整個 block 128 bytes 的總和 mod 256 = 0」。注意，是整個 block 的總和，不是 checksum 自己的值。extension block（例如 CTA-861，tag 0x02）也各有自己的 byte 127 checksum。
-- **EDID 走哪條路**：HDMI／DVI／VGA 用 DDC，就是 I2C，EDID 掛在 I2C 位址 0x50；DisplayPort 沒有 I2C 的 SCL/SDA 腳，DDC 是用輔助通道（AUX）上的 I2C-over-AUX 訊息模擬出來的（ddcutil 文件講得很清楚，見參考資料 6）。
+- **EDID 走哪條路**：HDMI／DVI／VGA 用 DDC，就是 I2C，EDID 掛在 I2C 位址 0x50；DisplayPort 沒有 I2C 的 SCL/SDA 腳，DDC 是用輔助通道（AUX）上的 I2C-over-AUX 訊息模擬出來的[^1]。
 - **HPD（Hot Plug Detect）**：一條中斷線。host 在 HPD 事件或定期 poll 時才會重新探測 connector、重讀 EDID。Linux kernel 的 `drm_helper_hpd_irq_event()` 就是對有設 HPD poll 旗標的 connector 跑一輪 detect cycle（kernel 官方文件，見參考資料 4）。
 
 一個工程類比：EDID 像菜單，host 是客人。你改了菜單內容（韌體重構 EDID），但客人手上那本還是舊的——除非你把店門口的燈關掉再打開（HPD toggle），客人才會重新拿一本。
@@ -50,7 +50,7 @@ crc = 0x100 - csum;   /* 讓 128 bytes 總和 mod 256 = 0 */
 
 kernel 的 `edid_block_status_valid()`（同一份原始碼）有個很關鍵的分流：
 
-- Base Block checksum fail → 整份 EDID 無效，driver 拿不到 mode list，只能靠 helper 補標準 VESA DMT mode（kernel 文件寫明：get_modes 回傳 0 時會自動補到 1024×768 為止的 DMT mode）。
+- Base Block checksum fail → 整份 EDID 無效，driver 拿不到 mode list，只能靠 helper 補標準 VESA DMT mode（get_modes 回傳 0 時會自動補到 1024×768 為止的 DMT mode[^2]）。
 - CTA extension（tag 0x02）checksum fail → kernel 容忍並照常採用，只用 pr_debug 印一行「…checksum is invalid, …, ignoring」，預設 log 等級下看不到。
 - 其他 extension（例如 DisplayID，tag 0x70）checksum fail → 該 block 被判無效，裡面的資訊（例如 DisplayID 帶的 timing、VRR 範圍）在 Linux 端就不見了。
 
@@ -135,7 +135,7 @@ void hpd_timer_expired(int port)
 
 ### HPD toggle 本身也是協定行為
 
-DP 的 HPD 有 long pulse（連接／斷開）與 short pulse（IRQ_HPD，事件通知）兩種語意。DP 2.0 規格寫明：sink 產生的 IRQ_HPD 是 0.5–1.0 ms 的低脈衝；source 看到窄於 0.25 ms 的脈衝可忽略，寬於 2 ms 就當成拔除（unplug）處理（DP 2.0 PDF p.717–718；另見 PDF p.65）。HDMI 則規定 sink 改了 E-EDID 內容時，要把 HPD 拉低至少 100 ms（HDMI 1.4 §8.5，PDF p.168；HDMI 2.1 PDF p.471 同義）。實務上（個人經驗推論）：低電位落在 2 ms 以內，host 會當成 IRQ_HPD 不重讀；toggle 太頻繁，host 走完整斷連流程，黑畫面閃爍還會被客戶當線材不良；toggle 時 EDID 還沒落位，host 讀到半新半舊，比不讀還慘。所以低電位時間做成 config 參數，用 AUX analyzer 實測各平台 host 標定，不要拍腦袋。
+DP 的 HPD 有 long pulse（連接／斷開）與 short pulse（IRQ_HPD，事件通知）兩種語意。sink 產生的 IRQ_HPD 是 0.5–1.0 ms 的低脈衝；source 看到窄於 0.25 ms 的脈衝可忽略，寬於 2 ms 就當成拔除（unplug）處理[^3]。HDMI 則規定 sink 改了 E-EDID 內容時，要把 HPD 拉低至少 100 ms（HDMI 1.4 §8.5，PDF p.168；HDMI 2.1 PDF p.471 同義）。實務上（個人經驗推論）：低電位落在 2 ms 以內，host 會當成 IRQ_HPD 不重讀；toggle 太頻繁，host 走完整斷連流程，黑畫面閃爍還會被客戶當線材不良；toggle 時 EDID 還沒落位，host 讀到半新半舊，比不讀還慘。所以低電位時間做成 config 參數，用 AUX analyzer 實測各平台 host 標定，不要拍腦袋。
 
 ## 真實血淚案例
 
@@ -181,3 +181,7 @@ E-DDC 加入多位址能力，可定址多個 256-byte segment（最多 128 個�
 
 8. VESA DisplayPort Standard Version 2.0（2019-06-26）：IRQ_HPD 0.5–1.0 ms、0.25 ms 以下可忽略、2 ms 以上視為拔除（PDF p.717–718）。會員文件，本文只引用頁碼並改寫。
 9. HDMI Specification 1.4 §8.5 Hot Plug Detect：E-EDID 變更時 HPD 低電位至少 100 ms（PDF p.168）；HDMI 2.1 同義條文（PDF p.471）。Adopter 文件，本文只引用頁碼並改寫。
+
+[^1]: ddcutil 官方文件「DDC and DisplayPort」，見參考資料 6。網頁文件，章節待查證。
+[^2]: Linux kernel 官方文件「Mode Setting Helper Functions」，見參考資料 4。網頁文件，章節待查證。
+[^3]: VESA DisplayPort Standard Version 2.0（2019-06-26），PDF p.717–718；另見 PDF p.65（見參考資料 8）。

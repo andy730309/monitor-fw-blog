@@ -24,7 +24,7 @@ Dolby 官方把三種規格並排比較（Dolby Professional gaming 頁）：Dol
 幾個名詞先講清楚：
 
 - **PQ（SMPTE ST 2084）**：HDR 的絕對亮度 EOTF，HDR10 與 Dolby Vision 共用。沒讀過的先看本系列 HDR10 tone mapping 那篇。
-- **Display management**：Dolby 白皮書的說法，指顯示端把全範圍訊號依自身實際能力（峰值亮度、對比、色域）映射的流程。HDR10 靠你自己在韌體裡寫 tone map；Dolby Vision 則把「這個場景該怎麼映射」的線索（metadata）一起送過來。
+- **Display management**：指顯示端把全範圍訊號依自身實際能力（峰值亮度、對比、色域）映射的流程[^1]。HDR10 靠你自己在韌體裡寫 tone map；Dolby Vision 則把「這個場景該怎麼映射」的線索（metadata）一起送過來。
 - **L1 metadata**：Dolby Vision Color Grading Best Practices Guide v4 裡的分析 metadata，每個 shot 三個浮點值 L1 Min/Mid/Max，描述該 shot 的動態範圍（在 LMS 色彩空間分析）。這是 monitor 韌體端做動態 tone mapping 最直接的輸入。
 - **Profile**：Dolby 定義的位流功能子集。串流生態以 profile 5（單層、無向下相容）、8.1（HDR10 相容）、8.4（HLG 相容）為主；UHD Blu-ray 走 profile 7 雙層。profile 字串格式是 dv[BL_codec_type].[bitstream_profile_ID]，例如 dvhe.05（HEVC、profile 5）。level 則限定該 profile 下的最大 frame rate、bit rate 與解析度。
 
@@ -48,7 +48,7 @@ CMv4 另外加了 L3（L1 的 offset）、L8（二次色彩 trim）、L9（per-s
 
 ### monitor 韌體端要做什麼
 
-Dolby Vision 的能力來自 scaler 晶片：profiles/levels 文件明說「Every Dolby Vision playback device must pass Dolby Vision system development kit certification」，晶片端的 DV 解碼與 display management 由 Dolby 認證。所以 ODM 韌體端的工作不是自己寫 tone mapping 演算法，而是四件事：
+Dolby Vision 的能力來自 scaler 晶片：「Every Dolby Vision playback device must pass Dolby Vision system development kit certification」[^2]，晶片端的 DV 解碼與 display management 由 Dolby 認證。所以 ODM 韌體端的工作不是自己寫 tone mapping 演算法，而是四件事：
 
 1. **VSIF 攔截與解析**：DV over HDMI 走 vendor-specific InfoFrame（VSIF）。位元組配置在 HDMI 規格與 Dolby licensee 文件裡（NDA），公開資訊不足，實作時對照手上的 NDA 文件。韌體第一件事是把 InfoFrame 攔下來看，不要當雜訊丟掉。
 2. **模式狀態機**：SDR → HDR10 → DV 的進出。進入要連續多幀確認（防誤觸），退場要有 watchdog。
@@ -159,3 +159,6 @@ profiles/levels 文件的 Table 1 列出各 profile 的 BL/EL codec 與 BL VUI�
 - ASUS 支援 FAQ — [LCD Monitor] Dolby Vision Introduction（廠商文件，非標準來源）：https://www.asus.com/us/support/faq/1053978/
 
 提醒：Dolby Vision 的 HDMI 傳輸細節（VSIF 位元組配置）與 SDK 內部演算法屬 licensee/NDA 文件，本文僅依公開資訊撰寫，實作時請對照手上的 NDA 文件。
+
+[^1]: An Introduction to Dolby Vision 白皮書 PDF（官方，見參考資料）。頁碼待查證。
+[^2]: Dolby Vision profiles and levels specification（Dolby 文件；文中連結為非官方鏡像 PDF，見參考資料）。章節、頁碼待查證。

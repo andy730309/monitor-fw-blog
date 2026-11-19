@@ -19,7 +19,7 @@ difficulty: intermediate
 
 先講三個類比，新人看完再往下。
 
-**DDC/CI 的等待語意，像掛號看診。** 你把掛號單（Set/Get VCP Feature 封包）遞進診間，護理師會跟你說「請等 40 到 200 秒再回來問結果」。DDC/CI 規格就是這樣：host 送出命令後，要等 40–200 ms（依操作類型）再去讀回應。ddcutil 的官方文件講得很白：照規格睡，大概九成的執行時間都在睡覺。很多螢幕其實回得更快，但也有螢幕需要更久。你如果遞完單子立刻衝進診間問「好了沒」，只會得到「還沒」（這就是 Null Message），不是「看不了病」。
+**DDC/CI 的等待語意，像掛號看診。** 你把掛號單（Set/Get VCP Feature 封包）遞進診間，護理師會跟你說「請等 40 到 200 秒再回來問結果」。DDC/CI 規格就是這樣：host 送出命令後，要等 40–200 ms（依操作類型）再去讀回應。照規格睡，大概九成的執行時間都在睡覺[^1]。很多螢幕其實回得更快，但也有螢幕需要更久。你如果遞完單子立刻衝進診間問「好了沒」，只會得到「還沒」（這就是 Null Message），不是「看不了病」。
 
 **Null Message 有兩種意思，像「請稍候」和「查無此人」。** 依 DDC/CI Command Interface Standard v1.1（2004 年版）section 6.4（ddcutil 文件引述），display 送 Null Message 給 host 有幾種情況，其中最關鍵的兩種：一是「我還沒準備好回應你」，正確處理是睡久一點再重試；二是有些螢幕乾脆用 Null Message 表示「這個 feature 我不支援」，正確處理是不重試。把「請稍候」當成「查無此人」，你的測試就會亂報 fail；把「查無此人」當成「請稍候」，你會對一個不存在的 feature 白白重試十次，測試慢得像龜。
 
@@ -142,3 +142,5 @@ ddcutil 在偵測階段會刻意去讀一個「必然不存在」的 VCP feature
 5. ddcutil 官方文件 — DDC and DisplayPort（官方；DP 無實體 SCL/SDA，I2C-over-AUX 隧道）：https://www.ddcutil.com/displayport/
 
 > 提醒：DDC/CI 與 MCCS 規格全文需 VESA 授權，本文僅引用 ddcutil 官方文件轉述的公開內容；撰寫正式測試文件時請對照手上的授權版本。
+
+[^1]: ddcutil 官方文件 — Performance and Tuning Options，見參考資料 2。網頁文件，章節待查證。

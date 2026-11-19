@@ -25,18 +25,9 @@ Monitor 韌體工程師很容易把 USB4 當成「別人的事」：那是 host 
 
 GPU 想把畫面送到螢幕，但中間隔著一條 USB4 線和一台 dock。USB4 的做法不是把 DP 訊號原封不動拉過去，而是把它「打包」成 tunnel：GPU 端有一個 **DP IN Adapter** 負責把 DP 流量吸進 USB4 fabric，dock 端有一個 **DP OUT Adapter** 負責把流量倒出來，變成一般的 DP 訊號給螢幕。對螢幕來說，DP OUT Adapter 就是它的 source；它根本不知道上游有 tunnel。
 
-```
-GPU（DPTX）
-  │  DP AUX + Main-Link（第一段）
-  ▼
-DP IN Adapter（host router）
-  │  USB4 tunnel：AUX 與 video 被封裝
-  ▼
-DP OUT Adapter（dock）
-  │  DP AUX + Main-Link（第二段）
-  ▼
-Monitor（DPRX）
-```
+![圖 1．DP 經 USB4 tunnel 到螢幕的兩段 link](/monitor-fw-blog/assets/img/posts/thunderbolt4-usb4-dp-tunneling-monitor/fig-1.svg)
+
+圖 1．DP 經 USB4 tunnel 到螢幕的兩段 link
 
 這個架構有兩個直接後果。
 

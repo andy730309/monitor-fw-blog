@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant Source
+    participant AUX_CH
+    participant Sink
+    Note over Source,Sink: HPD 插入／重新插入
+    Source->>AUX_CH: Read 00200h-00205h (Link/Sink Status)
+    AUX_CH-->>Source: SINK_COUNT, LANEx_STATUS, LANE_ALIGN_STATUS...
+    alt Link Unstable or First Plug
+        Source->>AUX_CH: Read 00000h-0000Fh (Receiver Capability)
+        AUX_CH-->>Source: MAX_LINK_RATE, MAX_LANE_COUNT, ENHANCED_FRAME_CAP...
+        opt 0000Eh bit 7 = 1 (DPCD r1.4+)
+            Source->>AUX_CH: Read 02200h- (Extended Receiver Cap)
+            AUX_CH-->>Source: 真實能力, 128b/132b cap (02206h), UHBR rates (02215h)...
+        end
+        Source->>AUX_CH: Write 00100h (LINK_BW_SET)
+        Source->>AUX_CH: Write 00101h (LANE_COUNT_SET)
+        Source->>AUX_CH: Write 00107h / 00108h (DOWNSPREAD_CTRL / CODING_SET)
+        Source->>AUX_CH: Write 00102h = 21h (TPS1, scrambling off)
+        Note over Source,Sink: 接圖 2：Link Training
+    end

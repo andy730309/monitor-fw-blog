@@ -1,0 +1,7 @@
+flowchart LR
+    PC["PC（ddcutil）"]
+    EDID["0x50<br/>EDID EEPROM/FW"]
+    SFW["0x37<br/>Scaler FW"]
+    OUT["背光 / PQ / 輸入切換 / OSD 同步"]
+    PC -->|"I2C/DDC"| EDID
+    PC -->|"DDC/CI"| SFW --> OUT

@@ -56,11 +56,11 @@ class CA410:
 
 ### 根因二：用 --display 綁定 DUT，綁到一個會漂的編號
 
-ddcutil 的 display number 是偵測時依 I2C bus 順序分配、從 1 開始的邏輯編號（來源：ddcutil 官方文件 Display Selection 頁）。四台 DUT 上電與 HPD 出現順序每次不同，`--display 2` 今天綁工位 2、明天可能綁工位 3。更陰險的是 DP 來源的螢幕可能同時出現在兩個 bus 上（phantom display，ddcutil FAQ 已說明），偵測結果本身就不可靠。
+ddcutil 的 display number 是偵測時依 I2C bus 順序分配、從 1 開始的邏輯編號（來源：ddcutil 官方文件 Display Selection 頁）。四台 DUT 上電與 HPD 出現順序每次不同，`--display 2` 今天綁工位 2、明天可能綁工位 3。更陰險的是 DP 來源的螢幕可能同時出現在兩個 bus 上（phantom display[^1]），偵測結果本身就不可靠。
 
 正確做法是用實體不變量綁定：
 
-- `--bus <n>`：治具走線決定 i2c bus number，焊死在治具上不會漂；ddcutil 官方 FAQ 也說明 `--bus` 可以跳過偵測階段，省時間。
+- `--bus <n>`：治具走線決定 i2c bus number，焊死在治具上不會漂；`--bus` 可以跳過偵測階段，省時間[^1]。
 - `--sn <serial>`：EDID 的 ASCII serial number，每台唯一（來源：ddcutil Display Selection 頁）。
 
 ```python
@@ -80,15 +80,19 @@ DDC_OPTS = ["--disable-dynamic-sleep",      # 關閉跨 process 共享的 stats
             "--noverify"]                   # 校正站迭代用；複測站建議保留 verify
 ```
 
-官方文件提到部分螢幕在 sleep-multiplier 低至 0.1 仍正常，但調低會增加通訊失敗與 retry，建議用 `--stats tries` 實測挑最佳值（同上來源）。retry 預設上限是 write-only 4 次、write-read 10 次、multi-part 8 次（同上來源），排程預算要把 retry 時間算進去。
+部分螢幕在 sleep-multiplier 低至 0.1 仍正常，但調低會增加通訊失敗與 retry，建議用 `--stats tries` 實測挑最佳值[^2]。retry 預設上限是 write-only 4 次、write-read 10 次、multi-part 8 次[^2]，排程預算要把 retry 時間算進去。
 
 ### 根因四：排程沒做 pipeline，UPH 只漲不跌的數學
 
 校正一個循環的時間組成：
 
-```
-切 pattern（DDC/CI 寫入）→ settle → CA-410 量測 → 計算 gain → 寫回 → settle → 複測
-```
+1. 切 pattern（DDC/CI 寫入）
+2. settle
+3. CA-410 量測
+4. 計算 gain
+5. 寫回
+6. settle
+7. 複測
 
 單 DUT 時這些段串聯；並行時只有「量測」被儀器序列化，其他段各自獨立。並行站的 takt 公式：
 
@@ -172,3 +176,6 @@ CA-410 官方 datasheet 標明一支 data processor 最多可接 10 支 probe。
 4. Konica Minolta CA-410 Communication Specifications Ver 1.08（官方 PDF，KMSE AA1J-CS.08E，117 頁）：https://www.konicaminolta.com.cn/instruments/download/software/driver/ca-410a_cs0108e_eng.pdf — COM 命令（Remote ON/OFF，PDF p.24）、命令記法（PDF p.23）；最新版 Ver 1.13 於官方下載頁 https://www.konicaminolta.com/instruments/download/software/display/index.html （需同意使用條款）
 5. Konica Minolta CA-410 datasheet（官方）：https://www.atecorp.com/getmedia/53be10c0-1cae-47d1-b2ed-c67b1a28e9d1/konica-minolta-ca-410-datasheet-1.pdf — Multi probe connection 10 probes (maximum)、user calibration memory 99 channels、USB 2.0／RS-232C
 6. pyserial API 文件（官方）：https://pyserial.readthedocs.io/en/latest/pyserial_api.html — Serial 的 exclusive 參數（POSIX 專屬）、timeout 語意
+
+[^1]: ddcutil FAQ（官方），見參考資料 3。網頁文件，章節待查證。
+[^2]: ddcutil Performance and Tuning Options（官方），見參考資料 2。網頁文件，章節待查證。

@@ -1,0 +1,14 @@
+flowchart LR
+    subgraph IO["輸入介面"]
+        HDMI["HDMI Rx"]
+        DP["DP Rx + AUX"]
+        USBC["Type-C Receptacle"]
+    end
+    IO --> VideoSel["Video Input Selection"]
+    VideoSel --> ImgProc["Image Processing Pipeline<br/>Scaling, Gamma, HDR, OD, OSD"]
+    ImgProc --> PanelTx["Panel Tx<br/>(eDP/V-by-One/LVDS)"]
+    ImgProc --> BLctrl["Backlight Control<br/>PWM/DC + Local Dimming Data"]
+    ImgProc --> MCU["MCU / RTOS<br/>8051/ARM/RISC-V"]
+    MCU --> Hub["USB Hub / Billboard / KVM"]
+    MCU --> PDif["PD Controller I/F<br/>I²C/SMBus"]
+    MCU --> OSD["OSD Engine"]

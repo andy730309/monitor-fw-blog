@@ -54,20 +54,9 @@ EPR 期間的可調電壓叫 AVS（Adjustable Voltage Supply），範圍從 15V 
 
 把這串畫成時序，重點在「線材檢查」卡在 Acknowledged 與 Succeeded 之間：
 
-```text
-Sink                          Source(monitor)
- |-- EPR_Mode_Enter ---------->|
- |<-- Enter Acknowledged ------|
- |                             |-- Discover Identity (SOP') --> cable
- |                             |<-- 50V/5A 宣告 --------------|
- |<-- Enter Succeeded ---------|
- |<-- EPR_Source_Capabilities -|
- |-- EPR_Request ------------->|
- |<-- Accept ------------------|
- |<-- PS_RDY ------------------|
- |-- EPR_KeepAlive ----------->|  (週期)
- |<-- KeepAlive_ACK -----------|
-```
+![圖 1．EPR 進入與線材檢查時序](/monitor-fw-blog/assets/img/posts/usb-pd32-epr-avs-monitor-source-power-budget/fig-1.svg)
+
+圖 1．EPR 進入與線材檢查時序
 
 ### 坑一：把 capable 當成 allowed
 

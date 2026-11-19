@@ -19,7 +19,7 @@ difficulty: intermediate
 
 ## 前置知識
 
-先把背光架構講白。LCD 自己不發光，光從背後的 LED 來。VESA 在 DisplayHDR 官方解說文裡把調光設計分成幾種：
+先把背光架構講白。LCD 自己不發光，光從背後的 LED 來。調光設計可分成幾種[^1]：
 
 - **Global dimming**：整片背光當一個 zone 一起調，成本最低，同時對比永遠不超過面板原生對比（通常約 1000:1，VESA 原文數字）。
 - **1D local dimming**：edge-lit，LED 串分 8 到 16 組獨立控制，同時對比 6,000:1 到 100,000:1。
@@ -30,7 +30,7 @@ difficulty: intermediate
 
 兩個名詞先定義：
 
-- **Halo**：暗背景裡的亮物體周圍出現一圈光暈。來源有兩層：背光 duty 對相鄰 zone 的光學擴散，加上液晶 off-state 的漏光（light leakage，LL）。SID 的一篇模擬論文講得很直白：halo 是「被調暗的背光單元」加上「LC 面板非理想 off-state」共同造成的，而且永遠不可能完全消除，只能在成本（LED 數量）與感知之間取捨。
+- **Halo**：暗背景裡的亮物體周圍出現一圈光暈。來源有兩層：背光 duty 對相鄰 zone 的光學擴散，加上液晶 off-state 的漏光（light leakage，LL）。halo 是「被調暗的背光單元」加上「LC 面板非理想 off-state」共同造成的，而且永遠不可能完全消除，只能在成本（LED 數量）與感知之間取捨[^2]。
 - **Blooming**：亮部亮度被放大超過目標，往周圍暈開過曝。多半是 duty 拉亮之後 LCD 端沒做反向補償。
 
 還有一個反直覺的事實：人眼自己也有 halo。亮點旁的暗區，視網膜散射會讓你「看到」光暈。所以調校的終點不是零光暈，而是讓背光造成的 halo 低於人眼自己的 halo——SID 論文的模擬驗證就是用這個思路做的。
@@ -163,3 +163,6 @@ DisplayHDR CTS 1.2 的 Active Dimming 測項用「50 cd/m² checkerboard」與�
 4. 「High dynamic range liquid crystal displays with a mini-LED backlight」，Journal of the Society for Information Display（作者與年份欄位待查證；LabPSNR 約 47.4 dB 人眼感知門檻與分區數需求出自該 PDF 結論段）— 非官方（Semantic Scholar 公開 PDF）：https://pdfs.semanticscholar.org/c17a/6ee3eb4a77d3fd87c64d90443e0bc2e5c7fc.pdf
 
 提醒：scaler 端 local dimming 引擎的暫存器介面與 backlight driver 行為多屬 NDA 文件，本文程式碼僅依公開規格推演示意，實作請對照你手上的 vendor SDK 與 driver datasheet。
+
+[^1]: VESA DisplayHDR「LCD Dimming in HDR Displays Explained」（官方），見參考資料 2。網頁文件，章節待查證。
+[^2]: Julian Ritter 等，〈Numerical Simulation of Halo Artifact Caused by Local-Dimming and its Validation on AMOLED Displays〉，SID Symposium（見參考資料 3）。頁碼待查證。

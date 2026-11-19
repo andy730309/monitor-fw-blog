@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant PC as PC / 測試腳本 (ddcutil)
+    participant BUS as I2C (DDC) / I2C-over-AUX (DP)
+    participant FW as 顯示器韌體 (scaler MCU)
+    PC->>BUS: 讀 EDID (0x50)
+    BUS->>PC: EDID 128/256 bytes
+    PC->>BUS: DDC/CI Get VCP 0x10 (to 0x37)
+    BUS->>FW: 轉送命令
+    FW-->>PC: 回覆：目前值 / 最大值
+    PC->>BUS: DDC/CI Set VCP 0x10 = 50
+    BUS->>FW: 轉送命令
+    FW->>FW: 更新背光、同步 OSD 顯示、延遲寫入 flash

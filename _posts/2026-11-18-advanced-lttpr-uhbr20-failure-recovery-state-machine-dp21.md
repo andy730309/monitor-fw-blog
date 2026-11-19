@@ -49,7 +49,7 @@ LTTPR 發現（discovery）的第一步是讀共用欄位，kernel 的公開定�
 
 新手最常犯的錯，是把 0xF0002 讀回來的值直接當二進位數字用，例如「低 3 位當數量」。它是 one-hot（單一位元為 1）型樣，而且從最高位元往下數：80h 代表 1 顆、40h 代表 2 顆、20h 代表 3 顆、10h 代表 4 顆、08h 代表 5 顆、04h 代表 6 顆、02h 代表 7 顆、01h 代表 8 顆，FFh 代表 9 顆以上，其他值保留（DP 2.0 PDF p.575）。kernel 的 `drm_dp_lttpr_count()` 用 population count（計算有幾個位元為 1）解碼：0 個位元為 1 就是 0 顆；恰好 1 個位元為 1，數量 = 8 減去位元位置；8 個位元全為 1（FFh）回 `-ERANGE`；其他型樣回 `-EINVAL`。也就是說，讀到 0x03、0x07 這種型樣不是「數量怪」，是「這次讀到的值不合法」。規格也明講：讀到合法值以外的數，DPTX 不得把模式寫成 AAh，也不得走 LTTPR 的訓練流程（DP 2.0 PDF p.889）。
 
-為什麼這樣編？規格說每顆 LTTPR 回報的值是「從下游收到的值除以 2」，下游沒回應時預設 80h（PDF p.575）。所以每多一顆中繼器，位元就往右移一格，每顆中繼器只要做一次右移就好。順帶的好處是非法型樣很容易抓出來（個人經驗推論）。
+為什麼這樣編？每顆 LTTPR 回報的值是「從下游收到的值除以 2」，下游沒回應時預設 80h[^1]。所以每多一顆中繼器，位元就往右移一格，每顆中繼器只要做一次右移就好。順帶的好處是非法型樣很容易抓出來（個人經驗推論）。
 
 ### 坑二：模式切換要先「顯式回透明」，不能直接寫非透明
 
@@ -63,17 +63,9 @@ LTTPR 發現（discovery）的第一步是讀共用欄位，kernel 的公開定�
 
 把三個坑合起來，DPTX（source 端，或螢幕的 DP-out 埠）的失敗回復狀態機長這樣：
 
-```
-IDLE ──HPD──▶ LTTPR_DETECT ──count>0──▶ MODE_SEQ ──▶ TRAINING(CR→EQ/CDS)
-                 │  │                                      │
-                 │  └─count=0（直通 DPRX）                 ├─成功──▶ SUCCESS（背景監控）
-                 │                                        ├─失敗<門檻──▶ 同 config 重試
-                 └─AUX 失敗/非法型樣──▶ 當 0 顆重試         └─重試用盡──▶ FALLBACK
-                                                                    │
-                                              UHBR20→13.5→10→HBR3（先降頻率）
-                                                                    │
-                                                     全部失敗──▶ 停止並回報錯誤
-```
+![圖 1．DPTX 的 LTTPR／UHBR20 失敗回復狀態機](/monitor-fw-blog/assets/img/posts/advanced-lttpr-uhbr20-failure-recovery-state-machine-dp21/fig-1.svg)
+
+圖 1．DPTX 的 LTTPR／UHBR20 失敗回復狀態機
 
 對應的 C 語言骨架（DPCD 位址為 kernel 公開定義；scaler 內部暫存器與 AUX Macro 皆為示意）：
 
@@ -194,3 +186,5 @@ static const struct { uint8_t rate_code; uint8_t lanes; } fallback_ladder[] = {
 7. Cadence 社群部落格「DisplayPort 128b/132b Concurrent LTTPR Link Training - Verification」（並行 LTTPR 訓練、CDS/Hop/Intra-Hop Aux、650 ms 訓練目標）：https://community.cadence.com/cadence_blogs_8/b/fv/posts/displayport-128b-132b-concurrent-lttpr-link-training （EDA 廠技術部落格，非官方規格）
 
 > 本文規格頁碼對照 VESA DP 2.0（PDF 頁序）；DP 2.1／2.1b 的差異未核對（待查證），實作前請對照最新版規格與 scaler SDK。
+
+[^1]: VESA DisplayPort Standard Version 2.0，PHY_REPEATER_CNT 編碼，PDF p.575（見參考資料 1）。

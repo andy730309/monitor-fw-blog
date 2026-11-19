@@ -1,0 +1,9 @@
+flowchart TD
+    ACDC["AC/DC"] --> BB["Buck-Boost"] --> VBUS["VBUS"] --> PORT["Type-C Port"]
+    PORT <--> PD["PD Controller"]
+    PD --> CC["CC Line/PD<br/>（PDO 協商）"]
+    PD --> MUX["High-Speed MUX<br/>（DP/USB 切換）"]
+    PD --> AUX["AUX/HPD Detect<br/>（Alt Mode HPD）"]
+    CC --> MCU["I²C/SMBus → Scaler MCU"]
+    MUX --> MCU
+    AUX --> MCU

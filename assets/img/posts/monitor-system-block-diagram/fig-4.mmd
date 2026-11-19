@@ -1,0 +1,15 @@
+flowchart LR
+    PanelTx["Scaler Panel Tx"] --> Rx
+    subgraph TCON["T-CON Board"]
+        Rx["High-Speed Rx"] --> TimingGen["Timing Generator<br/>Vsync/Hsync/DE/CLK"]
+        TimingGen --> SrcDrv["Source Drivers"]
+        TimingGen --> GateDrv["Gate Drivers"]
+        TimingGen -.-> PSR["PSR Frame Buffer<br/>(選配)"]
+    end
+    subgraph Panel["Panel (LCD/OLED)"]
+        TFT["TFT Matrix + Color Filter"]
+        LED["LED Backlight<br/>(LCD only)"]
+    end
+    SrcDrv --> TFT
+    GateDrv --> TFT
+    LED -.-> TFT

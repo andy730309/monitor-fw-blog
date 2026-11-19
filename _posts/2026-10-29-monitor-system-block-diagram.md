@@ -18,7 +18,6 @@ faq:
   - q: "什麼是 PSR (Panel Self-Refresh)？它省在哪裡？"
     a: "靜態畫面時，T-CON 內建 Frame Buffer 維持顯示，關閉 Scaler→T-CON 的 Main Link (eDP/DP)，讓 GPU 和 Link 進入低功耗狀態，省下 Link 功耗與 GPU 記憶體頻寬。"
 difficulty: beginner
-mermaid: true
 ---
 > **重點摘要**：一台顯示器裡有六大子系統同時運作：Scaler、T-CON、Panel、背光、USB-C PD 與 USB Hub。Scaler 負責收訊號、處理影像與管理系統，T-CON 負責把影像轉成面板的驅動時序。除錯畫面不亮或 USB-C 充不了電，第一步就是看懂這張方塊圖。
 
@@ -60,9 +59,18 @@ mermaid: true
 - 解碼後得到純數位像素流 (RGB/YCbCr)。
 
 ### 2. 影像處理管線：Scaler 內部
-```
-Video Input → Scaling → CSC/Range → Gamma/LUT → HDR Tone Map → Sharpness/NR → Overdrive → OSD Insert → Panel Tx
-```
+處理順序：
+
+1. Video Input
+2. Scaling
+3. CSC/Range
+4. Gamma/LUT
+5. HDR Tone Map
+6. Sharpness/NR
+7. Overdrive
+8. OSD Insert
+9. Panel Tx
+
 - Scaling：把 1080p 縮放到 4K 面板原生解析度 (polyphase filter)。
 - Gamma/LUT：把線性亮度轉成人眼感知均勻的曲線 (γ=2.2 或 PQ)。
 - Overdrive (OD)：預判下一幀，施加過衝電壓加速液晶轉向 (降低 GtG)。
@@ -89,18 +97,9 @@ Video Input → Scaling → CSC/Range → Gamma/LUT → HDR Tone Map → Sharpne
 - Mini-LED / FALD：幾百~上千 zones 獨立電流控制 → Scaler 算好 zone brightness → 經 SPI/I²C 送給 Backlight Driver → Driver 內部 MCU 執行電流控制、保護、平滑。
 
 ### 7. USB-C PD 與 Alt Mode (現代商用機必備)
-```
-[AC/DC] → [Buck-Boost] → [VBUS] → [Type-C Port] ↔ [PD Controller]
-                                      │
-                    ┌─────────────────┼─────────────────┐
-                    ▼                 ▼                 ▼
-              [CC Line/PD]      [High-Speed MUX]    [AUX/HPD Detect]
-              (PDO 請商)         (DP/USB 切換)        (Alt Mode HPD)
-                    │                 │                 │
-                    └─────────────────┼─────────────────┘
-                                      ▼
-                              [I²C/SMBus → Scaler MCU]
-```
+![圖 1．USB-C PD 與 Alt Mode 的訊號與控制路徑](/monitor-fw-blog/assets/img/posts/monitor-system-block-diagram/fig-1.svg)
+
+圖 1．USB-C PD 與 Alt Mode 的訊號與控制路徑
 - 若監視器要給筆電充電，偏好的電源角色是 PD Source，輸出 VBUS（EPR 上限 240W，USB PD R3.2 V1.2 PDF p.30；實際能給多少看整機電源預算）。電源角色（Source／Sink）與資料角色（DFP／UFP）是兩件事，Source 不等於 DFP。
 - 同時，收筆電的 DP Alt Mode 時，資料角色應是 UFP。也就是常見目標組合是 Source + UFP，不是 Source + DFP。
 - 要到達這個組合時，雙角色且支援 USB PD 的產品「應該」（should）依初始角色發出需要的 Swap：例如一開始已是 Sink／UFP，發 PR_Swap 即可；一開始是 Source／DFP，發 DR_Swap 即可（USB Type-C Cable and Connector Specification R2.5，2026-03，§4.5.1.4.2、Table 4-13，PDF p.169；Table 4-14，PDF p.170）。不是每次連線都必須兩種 Swap 都做。只收影像、不反向供電的 USB-C 顯示器，也不必實作這些 Swap。
@@ -116,114 +115,33 @@ Video Input → Scaling → CSC/Range → Gamma/LUT → HDR Tone Map → Sharpne
 
 ## 圖解
 
-### 系統級方塊圖 (Mermaid)
+### 系統級方塊圖
 
-```mermaid
-flowchart LR
-    subgraph Host["Host (GPU/Notebook)"]
-        GPU[GPU]
-    end
+![圖 2．系統級方塊圖：全貌](/monitor-fw-blog/assets/img/posts/monitor-system-block-diagram/fig-2.svg)
 
-    subgraph Monitor["Monitor 內部"]
-        direction TB
-        
-        subgraph IO["輸入介面"]
-            HDMI[HDMI Rx]
-            DP[DP Rx + AUX]
-            USBC[Type-C Receptacle]
-        end
-        
-        subgraph Scaler["Scaler / Mainboard"]
-            VideoSel[Video Input Selection]
-            ImgProc[Image Processing Pipeline\nScaling, Gamma, HDR, OD, OSD]
-            PanelTx[Panel Tx\n(eDP/V-by-One/LVDS)]
-            BLctrl[Backlight Control\nPWM/DC + Local Dimming Data]
-            MCU[MCU / RTOS\n8051/ARM/RISC-V]
-            Hub[USB Hub / Billboard / KVM]
-            PDif[PD Controller I/F\nI²C/SMBus]
-        end
-        
-        subgraph TCON["T-CON Board"]
-            Rx[High-Speed Rx]
-            TimingGen[Timing Generator\nVsync/Hsync/DE/CLK]
-            SrcDrv[Source Drivers]
-            GateDrv[Gate Drivers]
-            PSR[PSR Frame Buffer\n(選配)]
-        end
-        
-        subgraph Panel["Panel (LCD/OLED)"]
-            TFT[TFT Matrix + Color Filter]
-            LED[LED Backlight\n(LCD only)]
-        end
-        
-        subgraph BLdrv["Backlight Driver"]
-            BuckBoost[Buck/Boost LED Driver]
-            Zones[Local Dimming Zones\n(Mini-LED: 數百~上千)]
-            Protection[OVP/OCP/OTP\nThermal Protection]
-        end
-        
-        subgraph PDctrl["PD Controller (獨立 IC)"]
-            PE[Policy Engine / DPM]
-            MUX[High-Speed MUX/Re-driver]
-            AUXdet[AUX/HPD Detect]
-            BB[Billboard Device]
-        end
-    end
+圖 2．系統級方塊圖：全貌
 
-    GPU -->|HDMI/DP/Type-C| IO
-    IO --> VideoSel
-    VideoSel --> ImgProc
-    ImgProc --> PanelTx
-    ImgProc --> BLctrl
-    ImgProc --> MCU
-    MCU --> Hub
-    MCU --> PDif
-    MCU --> OSD[OSD Engine]
-    
-    PanelTx --> Rx
-    Rx --> TimingGen
-    TimingGen --> SrcDrv
-    TimingGen --> GateDrv
-    TimingGen -.-> PSR
-    SrcDrv --> TFT
-    GateDrv --> TFT
-    
-    BLctrl --> BuckBoost
-    BuckBoost --> Zones
-    Zones --> LED
-    LED -.-> TFT
-    
-    USBC -.->|VBUS/CC/SBU| PDctrl
-    PDctrl --> PE
-    PE --> MUX
-    PE --> AUXdet
-    PE --> BB
-    PDctrl -.->|I²C/SMBus| MCU
-    
-    MUX -.->|DP Lanes| PanelTx
-    MUX -.->|USB SS| Hub
-```
+![圖 3．Scaler / Mainboard 內部](/monitor-fw-blog/assets/img/posts/monitor-system-block-diagram/fig-3.svg)
 
-### 電源路徑簡圖 (ASCII)
+圖 3．Scaler / Mainboard 內部
 
-```
-[AC In] → [AC/DC PSU] → +12V/+5V/+3.3V 主機板電源軌
-                                    │
-                    ┌───────────────┼───────────────┐
-                    ▼               ▼               ▼
-              [Scaler Core]   [Backlight Drv]  [PD Controller]
-                    │               │               │
-                    ▼               ▼               ▼
-              [T-CON VDD]    [LED Array]      [Buck-Boost] → [VBUS 5~20V]
-                    │               │               │
-                    ▼               ▼               ▼
-              [Panel VDDIO/   [Local Dimming]  [Type-C Port]
-               AVDD/VGH/VGL]    (zones)             │
-                    │                               │
-                    └───────────────┬───────────────┘
-                                    ▼
-                              [Notebook 充電]
-```
+![圖 4．T-CON Board 到 Panel](/monitor-fw-blog/assets/img/posts/monitor-system-block-diagram/fig-4.svg)
+
+圖 4．T-CON Board 到 Panel
+
+![圖 5．背光控制路徑](/monitor-fw-blog/assets/img/posts/monitor-system-block-diagram/fig-5.svg)
+
+圖 5．背光控制路徑
+
+![圖 6．PD Controller（獨立 IC）路徑](/monitor-fw-blog/assets/img/posts/monitor-system-block-diagram/fig-6.svg)
+
+圖 6．PD Controller（獨立 IC）路徑
+
+### 電源路徑簡圖
+
+![圖 7．電源路徑簡圖](/monitor-fw-blog/assets/img/posts/monitor-system-block-diagram/fig-7.svg)
+
+圖 7．電源路徑簡圖
 
 ---
 

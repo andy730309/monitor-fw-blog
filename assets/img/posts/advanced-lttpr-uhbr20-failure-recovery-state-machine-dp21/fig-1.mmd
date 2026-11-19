@@ -1,0 +1,13 @@
+flowchart TD
+    IDLE["IDLE"] -->|"HPD"| DET["LTTPR_DETECT"]
+    DET -->|"count#gt;0"| MS["MODE_SEQ"]
+    DET -->|"count=0（直通 DPRX）"| TR
+    DET -->|"AUX 失敗/非法型樣"| Z["當 0 顆重試"]
+    Z --> TR
+    MS --> TR["TRAINING<br/>(CR→EQ/CDS)"]
+    TR -->|"成功"| OK["SUCCESS（背景監控）"]
+    TR -->|"失敗#lt;門檻"| RT["同 config 重試"]
+    RT --> TR
+    TR -->|"重試用盡"| FB["FALLBACK"]
+    FB -->|"UHBR20→13.5→10→HBR3<br/>（先降頻率）"| TR
+    FB -->|"全部失敗"| STOP["停止並回報錯誤"]

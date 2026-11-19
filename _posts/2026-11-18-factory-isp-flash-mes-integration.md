@@ -32,11 +32,11 @@ difficulty: advanced
 
 三個系統、一筆交易，順序錯了就全錯：
 
-```
-Reserve（MES 配號） → Program（燒錄） → Readback（讀回驗證） → Commit（MES 落檔） → Label（印標籤）
-        ↑                                        ↑
-   唯一發號源                          內容與 manifest 比對
-```
+1. Reserve（MES 配號）：唯一發號源
+2. Program（燒錄）
+3. Readback（讀回驗證）：內容與 manifest 比對
+4. Commit（MES 落檔）
+5. Label（印標籤）
 
 每一步都要有明確的成功定義，而且前一步沒過就不能進下一步。實務上最常被偷掉的是 Readback 與 Commit 之間的那道門：站端只要看到燒錄器回 OK，就直接印標籤、直接回報 MES。
 

@@ -139,7 +139,7 @@ void hdr_apply_lowend_correction(const int16_t *gain_rgy /* 工廠量測產生�
 
 ### 3. 思考題
 
-BT.2124 說 ΔEITP「不會低估、但可能高估」色差，因為它假設最敏感的適應狀態。請查 BT.2124 原文（或其 informative Annex 3）：對 scene-referred 相對訊號，它提供了什麼替代指標？再想想：如果今天你要校正的是一台「客廳、開燈看」的 HDR 電視而非暗房 monitor，用 ΔITP 當唯一門檻會發生什麼事？提示：從「適應狀態」與「JND 的定義條件」下手，答案在 BT.2124 的設計前提裡。
+ΔEITP「不會低估、但可能高估」色差，因為它假設最敏感的適應狀態[^1]。請查 BT.2124 原文（或其 informative Annex 3）：對 scene-referred 相對訊號，它提供了什麼替代指標？再想想：如果今天你要校正的是一台「客廳、開燈看」的 HDR 電視而非暗房 monitor，用 ΔITP 當唯一門檻會發生什麼事？提示：從「適應狀態」與「JND 的定義條件」下手，答案在 BT.2124 的設計前提裡。
 
 ## 參考資料
 
@@ -149,3 +149,5 @@ BT.2124 說 ΔEITP「不會低估、但可能高估」色差，因為它假設�
 4. G. Sharma, W. Wu, E. N. Dalal, "The CIEDE2000 Color-Difference Formula: Implementation Notes, Supplementary Test Data, and Mathematical Observations," Color Research and Application, 30(1), 21–30, 2005（公開實作筆記、test data 與 MATLAB 程式）：https://hajim.rochester.edu/ece/sites/gsharma/ciede2000/
 5. VESA Certified DisplayHDR Performance Criteria（CTS 1.2 公開摘要，含 ΔITP 門檻與測項說明；完整 CTS 文件需從 Downloads 頁取得）：https://displayhdr.org/performance-criteria/
 6. ITU-R BT.2020（原色與白點定義，官方頁）：https://www.itu.int/rec/R-REC-BT.2020
+
+[^1]: ITU-R BT.2124-0（01/2019），見參考資料 1。章節、PDF 頁碼待查證。

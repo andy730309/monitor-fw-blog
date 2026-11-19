@@ -1,0 +1,7 @@
+sequenceDiagram
+    participant PC as PC（source）
+    participant A as 螢幕 A（branch）
+    PC->>A: 寫 0x1000 請求
+    A->>A: 整筆回覆寫完，置 0x2003 bit4
+    A-->>PC: HPD 門鈴（0.5–1 ms）
+    PC->>A: 讀 0x1400 回覆

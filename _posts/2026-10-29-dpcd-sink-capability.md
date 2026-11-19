@@ -18,7 +18,6 @@ faq:
   - q: "Link training 過程中，Source 如何知道 Channel Equalization（EQ）階段完成？"
     a: "Source 反覆讀取 LANE0_1_STATUS（00202h）和 LANE2_3_STATUS（00203h），確認每條使用中的 lane 的 CHANNEL_EQ_DONE（Lane 0／2：bit 1；Lane 1／3：bit 5）與 SYMBOL_LOCKED（Lane 0／2：bit 2；Lane 1／3：bit 6）皆為 1，同時 LANE_ALIGN_STATUS_UPDATED（00204h）bit 0 INTERLANE_ALIGN_DONE＝1（VESA DP 2.0 PDF p.490、p.733）。"
 difficulty: beginner
-mermaid: true
 ---
 > **重點摘要**：DPCD 是 DisplayPort 接收端透過 AUX channel 讓 Source 讀寫的暫存器空間，Sink 用它宣告連結能力與狀態。影像格式則由 EDID／DisplayID 描述。Source 偵測到 HPD 插入後會讀 Link/Sink 狀態與 Receiver Capability，再進行 link training。
 
@@ -59,19 +58,19 @@ DPCD 是 DisplayPort 接收端（DPRX）透過 **AUX channel** 讓 Source 讀寫
 
 以下依 VESA DP 2.0 Table 2-182（PDF p.425）整理，只列 sink FW 最常碰到的區塊：
 
-```
-00000h–000FFh  Receiver Capability          ← 含 00000h–0000Fh 基本能力、00060h–0006Fh DSC、00090h FEC
-00100h–001FFh  Link Configuration           ← Source 寫這裡設定 link
-00200h–002FFh  Link/Sink Device Status      ← Source 讀這裡看 training 結果
-00300h–003FFh  Source Device-specific
-00400h–004FFh  Sink Device-specific         ← Sink 的 IEEE OUI 等
-00500h–005FFh  Branch Device-specific
-00600h–006FFh  Link/Sink Device Power Control
-02000h–021FFh  DPRX Event Status Indicator (ESI)
-02200h–022FFh  Extended Receiver Capability ← DPCD r1.4 起必備
-68000h–69FFFh  HDCP 1.3 / HDCP 2.2
-F0000h–F02FFh  LTTPR                        ← DPCD r1.4 起有效
-```
+| 位址範圍 | 區塊 | 說明 |
+| --- | --- | --- |
+| 00000h–000FFh | Receiver Capability | 含 00000h–0000Fh 基本能力、00060h–0006Fh DSC、00090h FEC |
+| 00100h–001FFh | Link Configuration | Source 寫這裡設定 link |
+| 00200h–002FFh | Link/Sink Device Status | Source 讀這裡看 training 結果 |
+| 00300h–003FFh | Source Device-specific | |
+| 00400h–004FFh | Sink Device-specific | Sink 的 IEEE OUI 等 |
+| 00500h–005FFh | Branch Device-specific | |
+| 00600h–006FFh | Link/Sink Device Power Control | |
+| 02000h–021FFh | DPRX Event Status Indicator (ESI) | |
+| 02200h–022FFh | Extended Receiver Capability | DPCD r1.4 起必備 |
+| 68000h–69FFFh | HDCP 1.3 / HDCP 2.2 | |
+| F0000h–F02FFh | LTTPR | DPCD r1.4 起有效 |
 
 - DSC 能力（00060h–0006Fh）適用 DP 1.4 以上（VESA DP 2.0 PDF p.446）；FEC 能力 00090h–00091h 為 DP 1.4 新增（VESA DP 2.0 PDF p.459）。兩者都在 Receiver Capability 區塊內，不是獨立區塊。
 - LTTPR 暫存器 F0000h–F02FFh 只對 DPCD r1.4 以上有效（VESA DP 2.0 PDF p.574）。
@@ -109,49 +108,13 @@ F0000h–F02FFh  LTTPR                        ← DPCD r1.4 起有效
 
 ## 圖解：DPCD 讀寫時序與 Link Training 流程（8b/10b）
 
-```mermaid
-sequenceDiagram
-    participant Source
-    participant AUX_CH
-    participant Sink
-    
-    Note over Source,Sink: HPD 插入／重新插入
-    Source->>AUX_CH: Read 00200h-00205h (Link/Sink Status)
-    AUX_CH-->>Source: SINK_COUNT, LANEx_STATUS, LANE_ALIGN_STATUS...
-    
-    alt Link Unstable or First Plug
-        Source->>AUX_CH: Read 00000h-0000Fh (Receiver Capability)
-        AUX_CH-->>Source: MAX_LINK_RATE, MAX_LANE_COUNT, ENHANCED_FRAME_CAP...
-        
-        opt 0000Eh bit 7 = 1 (DPCD r1.4+)
-            Source->>AUX_CH: Read 02200h- (Extended Receiver Cap)
-            AUX_CH-->>Source: 真實能力, 128b/132b cap (02206h), UHBR rates (02215h)...
-        end
-        
-        Source->>AUX_CH: Write 00100h (LINK_BW_SET)
-        Source->>AUX_CH: Write 00101h (LANE_COUNT_SET)
-        Source->>AUX_CH: Write 00107h / 00108h (DOWNSPREAD_CTRL / CODING_SET)
-        Source->>AUX_CH: Write 00102h = 21h (TPS1, scrambling off)
-        
-        loop Clock Recovery (CR)
-            Source->>Sink: Transmit TPS1 pattern (Main Link)
-            Source->>AUX_CH: Read 00202h-00203h (Lane Status)
-            AUX_CH-->>Source: LANEx_CR_DONE
-        end
-        
-        Source->>AUX_CH: Write 00102h (TPS2/3/4)
-        
-        loop Channel Equalization (EQ)
-            Source->>Sink: Transmit TPS2/3/4 pattern
-            Source->>AUX_CH: Read 00202h-00204h
-            AUX_CH-->>Source: CHANNEL_EQ_DONE, SYMBOL_LOCKED, INTERLANE_ALIGN_DONE
-        end
-        
-        Source->>AUX_CH: Write 00102h = 00h (training 結束)
-    end
-    
-    Note over Source,Sink: Start Video Stream (Main Link)
-```
+![圖 1．HPD 後讀取能力並設定 link（8b/10b）](/monitor-fw-blog/assets/img/posts/dpcd-sink-capability/fig-1.svg)
+
+圖 1．HPD 後讀取能力並設定 link（8b/10b）
+
+![圖 2．Link Training：Clock Recovery 與 Channel Equalization（8b/10b，接圖 1）](/monitor-fw-blog/assets/img/posts/dpcd-sink-capability/fig-2.svg)
+
+圖 2．Link Training：Clock Recovery 與 Channel Equalization（8b/10b，接圖 1）
 
 ---
 

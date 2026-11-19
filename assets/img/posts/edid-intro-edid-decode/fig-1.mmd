@@ -1,0 +1,8 @@
+sequenceDiagram
+  participant Src as 來源端
+  participant Sink as 接收端
+  Src->>Sink: 送出 +5V
+  Note over Sink: 關機或待命時仍應讓 EDID 可讀
+  Sink->>Sink: 確認 EDID 可讀
+  Sink->>Src: 拉高 HPD
+  Src->>Sink: 經 DDC 讀取 EDID

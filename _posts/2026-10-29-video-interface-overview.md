@@ -18,7 +18,6 @@ faq:
   - q: "HDMI 2.0 (TMDS) 與 HDMI 2.1 (FRL) 在傳輸機制上最大的不同是什麼？"
     a: "TMDS 用 3 data lanes + 1 clock lane，pixel clock 傳輸，8b/10b 編碼；FRL 用 4 data lanes 同步固定速率，無獨立 clock lane，16b/18b 編碼 + RS-FEC，支援 VRR/ALLM/QMS。"
 difficulty: beginner
-mermaid: true
 ---
 > **重點摘要**：VGA、DVI、HDMI、DisplayPort 與 USB-C 在訊號類型、編碼方式與頻寬上限都不同。例如 TMDS 採 8b/10b 編碼，有效頻寬約是連結速率的 80%。本文整理五大介面的演進脈絡，為之後學 DP link training、HDMI FRL 與 USB-C Alt Mode 打底。
 
@@ -57,23 +56,21 @@ mermaid: true
 
 ## 一步一步：從類比到 USB-C 的演進時間軸
 
-```mermaid
-timeline
-    title 影像介面演進時間軸
-    1987 : VGA (DE-15, 類比 RGB, 無音訊)
-    1999 : DVI (TMDS, Single/Dual Link, 無音訊)
-    2002 : HDMI 1.0 (TMDS, 音訊, CEC, HDCP)
-    2006 : DisplayPort 1.0 (Packet-based, AUX ch, 免授權費)
-    2010 : DP 1.2 (HBR2, MST, 4K@60)
-    2013 : HDMI 2.0 (TMDS 6Gbps, 4K@60, HDR static)
-    2014 : USB-C 推出 + DP Alt Mode 1.0
-    2016 : HDMI 2.0b, DP 1.3 (HBR3 8.1Gbps/lane, DP 2.0 PDF p.57)
-    2017 : HDMI 2.1 (FRL 48Gbps, VRR/ALLM/QMS, eARC)
-    2019 : DP 2.0 (UHBR 10/13.5/20, 128b/132b, 80Gbps)
-    2022 : DP 2.1 (DP40/DP80 cable cert, 頻寬管理)
-    2023 : HDMI Alt Mode 宣佈停止更新
-    2024 : HDMI 2.2 (FRL 96Gbps 待查證), DP Alt Mode v2.1a (支援 UHBR/VRR/HDMI FRL tunneling)
-```
+| 年份 | 介面與重點 |
+| --- | --- |
+| 1987 | VGA（DE-15，類比 RGB，無音訊） |
+| 1999 | DVI（TMDS，Single/Dual Link，無音訊） |
+| 2002 | HDMI 1.0（TMDS，音訊，CEC，HDCP） |
+| 2006 | DisplayPort 1.0（Packet-based，AUX ch，免授權費） |
+| 2010 | DP 1.2（HBR2，MST，4K@60） |
+| 2013 | HDMI 2.0（TMDS 6Gbps，4K@60，HDR static） |
+| 2014 | USB-C 推出 + DP Alt Mode 1.0 |
+| 2016 | HDMI 2.0b，DP 1.3（HBR3 8.1Gbps/lane，DP 2.0 PDF p.57） |
+| 2017 | HDMI 2.1（FRL 48Gbps，VRR/ALLM/QMS，eARC） |
+| 2019 | DP 2.0（UHBR 10/13.5/20，128b/132b，80Gbps） |
+| 2022 | DP 2.1（DP40/DP80 cable cert，頻寬管理） |
+| 2023 | HDMI Alt Mode 宣佈停止更新 |
+| 2024 | HDMI 2.2（FRL 96Gbps 待查證），DP Alt Mode v2.1a（支援 UHBR/VRR/HDMI FRL tunneling） |
 
 ### 步驟 1：認識五大介面的「身分證」
 
@@ -106,30 +103,16 @@ UHBR (DP 2.0/2.1)：
 
 ### 步驟 3：USB-C 怎麼同時傳視訊、資料、供電？
 
-```mermaid
-graph LR
-    subgraph USB-C[USB-C 24-pin Connector]
-        TX1[TX1+/TX1-] -->|Pin Assignment C| DP0[DP Lane 0]
-        RX1[RX1+/RX1-] -->|Pin Assignment C| DP1[DP Lane 1]
-        TX2[TX2+/TX2-] -->|Pin Assignment C| DP2[DP Lane 2]
-        RX2[RX2+/RX2-] -->|Pin Assignment C| DP3[DP Lane 3]
-        SBU[SBU1/SBU2] --> AUX[DP AUX Channel]
-        CC[CC1/CC2] --> PD[USB PD Messaging<br/>HPD/Interrupt]
-        USB2[D+/D-] --> USB20[USB 2.0 Data]
-        VBUS[VBUS/GND] --> PWR[Power Delivery<br/>up to 240W]
-    end
-    
-    subgraph PinD[Pin Assignment D - Dock/Hub 常用]
-        TX1 --> DP0
-        RX1 --> DP1
-        TX2 --> USB3_TX[USB 3.x TX]
-        RX2 --> USB3_RX[USB 3.x RX]
-        SBU --> AUX
-        CC --> PD
-        USB2 --> USB20
-        VBUS --> PWR
-    end
-```
+| USB-C 腳位 | Pin Assignment C | Pin Assignment D（Dock/Hub 常用） |
+| --- | --- | --- |
+| TX1+/TX1- | DP Lane 0 | DP Lane 0 |
+| RX1+/RX1- | DP Lane 1 | DP Lane 1 |
+| TX2+/TX2- | DP Lane 2 | USB 3.x TX |
+| RX2+/RX2- | DP Lane 3 | USB 3.x RX |
+| SBU1/SBU2 | DP AUX Channel | DP AUX Channel |
+| CC1/CC2 | USB PD Messaging、HPD/Interrupt | USB PD Messaging、HPD/Interrupt |
+| D+/D- | USB 2.0 Data | USB 2.0 Data |
+| VBUS/GND | Power Delivery（up to 240W） | Power Delivery（up to 240W） |
 
 - Pin Assignment C：4 lane DP，最高頻寬，**無 USB 3.x 資料**（僅 USB 2.0）→ 適用純視訊線、video adapter
 - Pin Assignment D：2 lane DP + 2 lane USB 3.x（USB 速率依 Gen 而定，DP Alt Mode 規格不在手邊，待查證） → 適用 dock、hub、帶 USB port 的監看器，同時跑 4K@60 + USB 3.x
@@ -138,23 +121,18 @@ graph LR
 
 ### 步驟 4：韌體工程師必知的「三條路徑」
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Monitor 系統六大子系統                       │
-├──────────────┬──────────────┬──────────────┬────────────────┤
-│   Scaler     │    T-CON     │    Panel     │  Backlight     │
-│  (大腦/介面/  │  (序列轉並列/  │  (畫布:       │  (Edge/Direct/ │
-│   影像處理/  │   時序產生/   │   LCD/OLED/  │   Mini-LED     │
-│   OSD/電源)  │   PSR)       │   Mini-LED)  │   FALD)        │
-└──────┬───────┴──────┬───────┴──────┬───────┴───────┬────────┘
-       │              │              │               │
-       ▼              ▼              ▼               ▼
-┌─────────────────────────────────────────────────────────────┐
-│  資料路徑: Host → Scaler → T-CON → Panel                      │
-│  控制路徑: DDC/CI (I²C) / DP AUX / PD CC line / USB Billboard │
-│  電源路徑: AC/DC → 各電壓軌 → VBUS (PD Source/Sink)           │
-└─────────────────────────────────────────────────────────────┘
-```
+| 子系統 | 角色 |
+| --- | --- |
+| Scaler | 大腦/介面/影像處理/OSD/電源 |
+| T-CON | 序列轉並列/時序產生/PSR |
+| Panel | 畫布：LCD/OLED/Mini-LED |
+| Backlight | Edge/Direct/Mini-LED FALD |
+
+三條路徑：
+
+1. 資料路徑：Host → Scaler → T-CON → Panel
+2. 控制路徑：DDC/CI (I²C) / DP AUX / PD CC line / USB Billboard
+3. 電源路徑：AC/DC → 各電壓軌 → VBUS (PD Source/Sink)
 
 - 資料路徑：決定支援多少解析度/更新率/色深 → 取決於介面頻寬、DSC、panel 介面
 - 控制路徑：EDID 讀取 (DDC/I²C @ 0x50)、MCCS/VCP 控制 (亮度、輸入切換)、DPCD/AUX 設定、PD VDM 協商 Alt Mode
@@ -164,30 +142,9 @@ graph LR
 
 ## 圖解：介面家族樹與向下相容關係
 
-```mermaid
-graph TD
-    VGA[VGA 1987<br/>Analog RGB] -->|Passive Adapter| DVI_I[DVI-I<br/>Digital + Analog]
-    DVI_I -->|Passive Adapter| DVI_D[DVI-D<br/>Digital Only]
-    DVI_D -->|Passive Adapter<br/>電氣相容| HDMI[HDMI 1.x/2.0<br/>TMDS + Audio + CEC]
-    
-    DP[DisplayPort 1.0+<br/>Packet + AUX] -->|DP++ Dual-Mode<br/>Passive Adapter| HDMI
-    DP -->|DP++ Dual-Mode<br/>Passive Adapter| DVI_D
-    
-    USBC[USB-C Connector] -->|Alt Mode C/D/E| DP_Alt[DP Alt Mode]
-    USBC -->|Alt Mode (已停更)| HDMI_Alt[HDMI Alt Mode]
-    USBC -->|Thunderbolt 3/4/5| TBT[Thunderbolt<br/>PCIe + DP Tunneling]
-    
-    DP_Alt -.->|不支援 DP++| HDMI
-    DP_Alt -.->|需 Active Converter| HDMI
-    
-    style VGA fill:#ffcccc
-    style DVI_I fill:#ffe0cc
-    style DVI_D fill:#ffe0cc
-    style HDMI fill:#ccffcc
-    style DP fill:#cceeff
-    style USBC fill:#e0ccff
-    style TBT fill:#f0e0ff
-```
+![圖 1．介面家族樹與向下相容關係](/monitor-fw-blog/assets/img/posts/video-interface-overview/fig-1.svg)
+
+圖 1．介面家族樹與向下相容關係
 
 > 紅框 = 已淘汰/極少新產品採用  
 > **綠框 = 消費電子主流**  

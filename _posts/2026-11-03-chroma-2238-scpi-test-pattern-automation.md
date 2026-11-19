@@ -23,7 +23,7 @@ difficulty: intermediate
 
 儀器控制也有這兩種模型。SCPI（Standard Commands for Programmable Instruments，可程式儀器的標準命令集）像一間有回報制度的電台：除了設定命令，還有查詢命令與狀態回報，你可以問「做完了沒」。SCPI-99 由 IVI Foundation 維護，是儀器界共同的語言。
 
-Chroma 2238 的公開手冊走的是另一條路。它列出的遠端命令是自家 ASCII 字串，例如 `RUN TIM 0601 ;`、`RUN PTN 0105 ;`，結尾用分號。手冊 §3.2（PDF p.65）寫明：儀器收到命令會先檢查參數，執行正常回 `OK;`，否則回 `NG;` 加錯誤說明（例如 `NG; BOUNDARY ERROR:`）。但手冊沒有列出 `*IDN?`、`*OPC?`、錯誤佇列這類 SCPI 查詢命令。也就是說：**這台會回「控制室已執行」，但不會告訴你「DUT 畫面已經穩定」。**
+Chroma 2238 的公開手冊走的是另一條路。它列出的遠端命令是自家 ASCII 字串，例如 `RUN TIM 0601 ;`、`RUN PTN 0105 ;`，結尾用分號。儀器收到命令會先檢查參數，執行正常回 `OK;`，否則回 `NG;` 加錯誤說明（例如 `NG; BOUNDARY ERROR:`）[^1]。但手冊沒有列出 `*IDN?`、`*OPC?`、錯誤佇列這類 SCPI 查詢命令。也就是說：**這台會回「控制室已執行」，但不會告訴你「DUT 畫面已經穩定」。**
 
 另一個要先分清楚的名詞是 timing 與 pattern。timing 是解析度、更新率、前後 porch 那組時序參數；pattern 是畫面內容，例如白窗、灰階、彩條。2238 的兩條命令都寫成「先載入、再啟用」（手冊 §3.2.2，PDF p.66）；實務上先送 timing、再送 pattern。順序反過來，或只做一半，畫面就不是你要的那張。
 
@@ -69,19 +69,9 @@ Chroma 官網標示 2238 的 8K 畫面切換只需 0.2 秒。這個數字很容�
 
 比較穩的流程不是找一個更大的 sleep，而是把就緒拆成三個可觀測的 gate：
 
-```text
-送出 RUN TIM
-   │
-   ├─ Gate 1：DDC/CI 心跳成功（DUT 可服務）
-   │
-送出 RUN PTN
-   │
-   ├─ Gate 2：DDC/CI 心跳仍成功（保守確認）
-   │
-   └─ Gate 3：量測值連續收斂（畫面真的穩了）
-          │
-          └─ 寫入結果（帶 timing/pattern/module/serial/fw hash）
-```
+![圖 1．三個 gate：把就緒變成可觀測條件](/monitor-fw-blog/assets/img/posts/chroma-2238-scpi-test-pattern-automation/fig-1.svg)
+
+圖 1．三個 gate：把就緒變成可觀測條件
 
 Gate 1 與 Gate 2 擋掉 link retrain 期間的假 timeout。Gate 3 才是真正的畫面穩定判據：用 CA-410 對同一個 patch 連續量測，直到相鄰樣本差異落在門檻內、連續數次成立。門檻不能憑感覺，至少要大於儀器本身的雜訊與精度。
 
@@ -260,3 +250,5 @@ RD 一開始懷疑 2238 不穩，但同一台儀器用手動面板操作完全�
 4. ddcutil，setvcp（I2C ack 不等於執行成功、預設 getvcp verify、--noverify）：https://www.ddcutil.com/command_setvcp/ （官方）
 5. ddcutil，Command Overview（detect/getvcp/setvcp/scs、--bus/--display）：https://www.ddcutil.com/commands/ （官方）
 6. IVI Foundation，Specification Downloads（SCPI-99 由 IVI Foundation 維護）：https://ivifoundation.org/specifications/default.html （官方）
+
+[^1]: Chroma ATE，Video Pattern Generator 2238 User's Manual，§3.2，PDF p.65（見參考資料 3）。

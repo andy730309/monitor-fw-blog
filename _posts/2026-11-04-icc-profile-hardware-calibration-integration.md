@@ -23,7 +23,7 @@ difficulty: intermediate
 - **ICC profile**：依 ICC.1:2022（profile version 4.4.0.0）定義的檔案格式，OS 端色彩管理用它描述裝置的色彩行為。
 - **Calibration（校正）**：改變裝置的行為，例如調 OSD 設定、對 color channels 套 per-channel curves（ArgyllCMS 文件定義）。
 - **Characterization / Profiling（特性化）**：記錄裝置的行為成 ICC profile，profile 本身不改變任何色彩（ArgyllCMS 文件定義）。
-- **vcgt tag**：display profile 裡存放 calibration curves 的 tag。ArgyllCMS 文件說明這是慣例（by convention）存放位置，一般的 ICC 工具不會動它，由 OS 或系統色彩工具在套用 profile 時把 curves 載入顯示硬體（VideoLUT）。
+- **vcgt tag**：display profile 裡存放 calibration curves 的 tag。這是慣例（by convention）存放位置，一般的 ICC 工具不會動它，由 OS 或系統色彩工具在套用 profile 時把 curves 載入顯示硬體（VideoLUT）[^1]。
 - **VideoLUT**：顯示卡上的硬體查表，OS loader 開機時把 vcgt 曲線寫進去。
 
 螢幕韌體工程師的視角是：校正資料有兩條路可以生效——寫進螢幕內部 LUT（硬體校正，走 DDC/CI），或寫進顯示卡 VideoLUT（軟體校正，走 vcgt）。兩條路同時開，就是校正兩次。這一篇講的就是這兩條路怎麼打架，以及韌體端該暴露什麼介面讓工具選對路。
@@ -42,7 +42,7 @@ difficulty: intermediate
 
 ### 根因一：profile 只對「同一個顯示狀態」有效
 
-ArgyllCMS 的 Calibration vs. Characterization 文件講得最直白：characterization（profile）只有在裝置處於「與 profile 當下相同的 calibration 狀態」時才有效。螢幕有多個 picture mode，各自掛不同的內部 LUT 與 gamma 目標；使用者切了 mode，顯示行為變了，OS 端還拿著舊 profile 套色彩轉換，偏色就來了。
+characterization（profile）只有在裝置處於「與 profile 當下相同的 calibration 狀態」時才有效[^2]。螢幕有多個 picture mode，各自掛不同的內部 LUT 與 gamma 目標；使用者切了 mode，顯示行為變了，OS 端還拿著舊 profile 套色彩轉換，偏色就來了。
 
 韌體端要做的，是讓「螢幕現在是哪個狀態」可以被外部查到。MCCS 有現成的 VCP code（定義經 ddcutil 官方文件交叉確認）：
 
@@ -54,7 +54,7 @@ ArgyllCMS 的 Calibration vs. Characterization 文件講得最直白：character
 
 ### 根因二：vcgt 造成的雙重校正
 
-ArgyllCMS 的 Usage Scenarios 文件寫明：如果 profiling 時用了 calibration 檔，它會被轉成 profile 裡的 vcgt tag，「讓 OS 或其他系統色彩工具在使用這個 profile 時把 lookup curves 載入顯示硬體」。
+如果 profiling 時用了 calibration 檔，它會被轉成 profile 裡的 vcgt tag，「讓 OS 或其他系統色彩工具在使用這個 profile 時把 lookup curves 載入顯示硬體」[^1]。
 
 問題來了：這台螢幕的校正已經寫進 scaler 內部 LUT（硬體校正），OS loader 開機又把 vcgt 曲線載進顯示卡 VideoLUT，兩層曲線疊加，等於校正兩次。校正工具自己產生的 profile 帶 vcgt、OS 預設會載，這條路徑沒人擋，隔天開機「色彩又偏掉」就是這麼來的。
 
@@ -242,3 +242,6 @@ ICC.1:2022 規定 tag table 的 tag signature 不可重複，但多個 tag signa
 - ICC — ICC Display Profiles with Control over the VCGT（ICC medical working group 白皮書，官方）：https://archive.color.org/groups/medical/displays/controllingVCGT.pdf
 
 提醒：ICC 規格全文與各 OS 色彩管理（Windows WCS、macOS ColorSync）的內部行為，部分需會員或屬廠商文件；本文只依上述公開資訊撰寫，實作前請對照你手上的正式文件。'meta'/'vcgt' tag 在 ICC Tag Registry 的註冊細節、OS loader 對 vcgt 的載入時機，本次未能查到官方條目，標「待查證」。
+
+[^1]: ArgyllCMS — Argyll Usage Scenarios（官方，見參考資料）。網頁文件，章節待查證。
+[^2]: ArgyllCMS — Calibration vs. Characterization（Graeme Gill，官方，見參考資料）。網頁文件，章節待查證。

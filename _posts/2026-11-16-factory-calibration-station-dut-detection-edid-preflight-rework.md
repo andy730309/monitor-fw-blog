@@ -11,7 +11,6 @@ roadmap_stage: practitioner
 sources_checked: 2026-11-16
 description: "產線校正站自動化流程：用 ddcutil 做 DUT 掛載檢測、EDID 前置檢查、DDC/CI 寫入重試，以及校正失敗後的 rework。"
 difficulty: intermediate
-mermaid: true
 ---
 > **重點摘要**：校正站開始校正前，要先確認 DUT 確實掛載，並檢查 EDID 是否正確。本文說明用 ddcutil 做 DUT 掛載檢測、EDID 前置檢查與 DDC/CI 寫入重試，以及校正失敗後自動進入 rework 的流程。
 
@@ -29,7 +28,7 @@ EDID（Extended Display Identification Data）是顯示器透過 DDC 傳回給�
 檢測流程：
 1. 對指定的 bus 讀一個必定支援的 VCP（例如 `ddcutil --bus <n> getvcp 10 --brief`），看 exit code。
 2. 不要只用 `ddcutil detect` 的 exit code 判斷：查 ddcutil 原始碼，`detect` 不論有沒有找到螢幕都回傳成功，找不到時印的是「No displays found.」（ddcutil src/app_ddcutil/main.c、src/ddc/ddc_display_ref_reports.c）。
-3. HPD 是視訊介面（HDMI／DP）的訊號，不是 DDC/CI 的一部分。DDC/CI 1.1 只說顯示器偵測到拔線時要重置 DDC/CI 功能，主機應定期（例如每 3 秒）讀 ID 確認裝置還在（DDC/CI 1.1 §6.7.6，p.31）。治具若能量 HPD，可以當作輔助判斷。
+3. HPD 是視訊介面（HDMI／DP）的訊號，不是 DDC/CI 的一部分。DDC/CI 規格在這裡只要求：顯示器偵測到拔線時要重置 DDC/CI 功能，主機應定期（例如每 3 秒）讀 ID 確認裝置還在[^1]。治具若能量 HPD，可以當作輔助判斷。
 4. 確認 i2c-dev 模組已載入：`lsmod | grep i2c_dev`（lsmod 顯示的模組名是底線）。
 
 程式碼實作（參考 notes/2026-11-16-factory-calibration-station-dut-detection-edid-preflight-rework.md）：
@@ -135,22 +134,9 @@ rework 流程：
 3. 記錄日誌：把檢查結果、重試次數、錯誤訊息寫入產線資料庫，支援 Cpk 監控與追溯
 4. 繼續下一個 DUT：移到下一個待測單元，繼續自動化流程
 
-流程圖說明：
-```mermaid
-flowchart TD
-    A[開始] --> B{DUT 掛載檢測}
-    B -- 失敗 --> C[標記 rework: DUT_presence_check]
-    B -- 成功 --> D{EDID 前置檢查}
-    D -- 失敗 --> E[標記 rework: EDID_preflight_check]
-    D -- 成功 --> F{DDC/CI 寫入測試}
-    F -- 連續 3 次失敗 --> G[標記 rework: DDC/CI_write_timeout]
-    F -- 成功 --> H[校正通過，進入下一階段]
-    C --> I[跳至下一個 DUT]
-    E --> I
-    G --> I
-    I --> J[下一個 DUT]
-    J --> B
-```
+![圖 1．預檢與 DDC/CI 寫入失敗時的 rework 流程](/monitor-fw-blog/assets/img/posts/factory-calibration-station-dut-detection-edid-preflight-rework/fig-1.svg)
+
+圖 1．預檢與 DDC/CI 寫入失敗時的 rework 流程
 
 ## 真實血淚案例
 > 情境模擬（依 VESA E-EDID、DDC/CI 規格與 ddcutil 實務經驗推演），非真實客戶或產品事件。以下數字是示意。
@@ -225,3 +211,5 @@ MCCS 的 10h（Luminance）是連續型 VCP，顯示器會同時回報目前值�
 
 ---
 *本文依 rules/ARTICLE-SPEC.md 與 rules/glossary.tsv 撰寫，台灣用語、全形標點、直白有人味為原則。數字與協定行為已盡力對照公開規格來源，未能查證之處標示（待查證），讀者請依實際手頭文件與晶片規格作為最終依據。*
+
+[^1]: VESA DDC/CI Standard Version 1.1，§6.7.6 Hot Plugging，p.31（公開鏡像，見參考資料 3）。

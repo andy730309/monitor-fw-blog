@@ -21,7 +21,6 @@ faq:
   - q: "Capabilities string 的用途是什麼？"
     a: "讓主機知道顯示器支援哪些 VCP code 與哪些值，避免下達不支援的指令。"
 difficulty: beginner
-mermaid: true
 ---
 > **重點摘要**：DDC/CI 是主機透過 I2C 控制顯示器的協定，MCCS 定義了可讀寫的 VCP 功能代碼。產線校正、自動化測試與品牌商的桌面工具都靠它。本文以 Linux PC 搭配 ddcutil，一步步示範偵測螢幕、讀 capabilities 與讀寫 VCP。
 
@@ -83,27 +82,13 @@ mermaid: true
    ```
 
 ## 圖解
-```mermaid
-sequenceDiagram
-    participant PC as PC / 測試腳本 (ddcutil)
-    participant BUS as I2C (DDC) / I2C-over-AUX (DP)
-    participant FW as 顯示器韌體 (scaler MCU)
-    PC->>BUS: 讀 EDID (0x50)
-    BUS->>PC: EDID 128/256 bytes
-    PC->>BUS: DDC/CI Get VCP 0x10 (to 0x37)
-    BUS->>FW: 轉送命令
-    FW-->>PC: 回覆：目前值 / 最大值
-    PC->>BUS: DDC/CI Set VCP 0x10 = 50
-    BUS->>FW: 轉送命令
-    FW->>FW: 更新背光、同步 OSD 顯示、延遲寫入 flash
-```
+![圖 1．PC 經 DDC/CI 讀 EDID 與讀寫 VCP 的時序](/monitor-fw-blog/assets/img/posts/ddc-ci-mccs-ddcutil-intro/fig-1.svg)
 
-ASCII 版：
-```
- PC(ddcutil) ──I2C/DDC──► [0x50 EDID EEPROM/FW]
-      │
-      └──────DDC/CI──────► [0x37 Scaler FW] ──► 背光 / PQ / 輸入切換 / OSD 同步
-```
+圖 1．PC 經 DDC/CI 讀 EDID 與讀寫 VCP 的時序
+
+![圖 2．ddcutil 存取的兩個 I²C 位址](/monitor-fw-blog/assets/img/posts/ddc-ci-mccs-ddcutil-intro/fig-2.svg)
+
+圖 2．ddcutil 存取的兩個 I²C 位址
 
 ## 常見陷阱
 - OSD 裡 DDC/CI 被關掉：很多機種預設開啟，但某些省電模式或 factory reset 後會關；`ddcutil detect` 看得到 EDID 但 DDC/CI 指令失敗。

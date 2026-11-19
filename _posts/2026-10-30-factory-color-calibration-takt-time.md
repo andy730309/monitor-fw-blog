@@ -27,7 +27,7 @@ difficulty: intermediate
 
 這裡有三個會直接吃掉 takt 的時間，全部來自規格與工具文件，不是經驗玄學：
 
-1. **等待時間**：DDC/CI 規格要求主機在送命令與讀回應之間等 40–200 ms，依操作種類不同。ddcutil 文件說，照規格做的 ddcutil「大約 90% 的 elapsed time 都在睡覺」。你沒看錯，九成時間在等。
+1. **等待時間**：DDC/CI 規格要求主機在送命令與讀回應之間等 40–200 ms，依操作種類不同。照規格做的 ddcutil「大約 90% 的 elapsed time 都在睡覺」[^1]。你沒看錯，九成時間在等。
 2. **驗證（verify）**：Set VCP Feature 只拿到「封包被收到」的 I2C ack，沒有任何訊號保證螢幕真的執行了。所以 ddcutil 的 `setvcp` 預設會再讀一次（getvcp）確認，除非你加 `--noverify`。
 3. **存檔（store）**：MCCS 的 VCP `B0h Settings` 是 write-only，`0x01` 代表「Store current settings in the monitor」。不送這一下，gain 只活在暫存狀態，重開機就沒了。
 
@@ -124,7 +124,7 @@ uint8_t Ddc_SetVcpFeature_Handler(uint8_t vcp, uint16_t value)
 
 ### 3. 思考題
 
-ddcutil 的 `scs` 頁面寫著：多數 display 有實作 Save Current Settings，但「即使有，這個指令通常看不出效果」，而特定機種卻是 `setvcp` 後**必須**緊接 `scs` 才生效。請查 MCCS 正式規格（VESA，full document 需購買，可先對照 VESA 的 MCCS V2.2 新聞稿與 ddcutil 的 vcpinfo 輸出）與你手邊機種的 capabilities string：
+多數 display 有實作 Save Current Settings，但「即使有，這個指令通常看不出效果」，而特定機種卻是 `setvcp` 後**必須**緊接 `scs` 才生效[^2]。請查 MCCS 正式規格（VESA，full document 需購買，可先對照 VESA 的 MCCS V2.2 新聞稿與 ddcutil 的 vcpinfo 輸出）與你手邊機種的 capabilities string：
 
 1. `scs` 在 MCCS 裡對應的 VCP code 是哪一個（提示：跟 `B0h Settings` 有關）？它的 0x01/0x02 各代表什麼？
 2. 為什麼「先 verify 再 store」與「先 store 再 verify」在不同機種上會得出相反的結果？你要怎麼設計一套對兩種行為都成立的流程？
@@ -146,3 +146,6 @@ ddcutil 的 `scs` 頁面寫著：多數 display 有實作 Save Current Settings�
 10. Microsoft Learn — Using the Low-Level Monitor Configuration Functions（VCP continuous/non-continuous、capabilities string 內容）— 官方：https://learn.microsoft.com/en-us/windows/win32/monitor/using-the-low-level-monitor-configuration-functions
 
 提醒：MCCS 與 DDC/CI 正式規格全文需向 VESA 取得（部分需付費），本文只引用公開文件與工具文件；scaler 暫存器與 NVRAM 範例皆為示意，對照你手上的 NDA 文件為準。
+
+[^1]: ddcutil Documentation — Performance and Tuning Options，見參考資料 1。網頁文件，章節待查證。
+[^2]: ddcutil Documentation — scs，見參考資料 3。網頁文件，章節待查證。

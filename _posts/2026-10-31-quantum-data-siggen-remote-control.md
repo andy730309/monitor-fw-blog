@@ -19,7 +19,7 @@ difficulty: intermediate
 
 先把三個名詞講白。
 
-**訊號產生器（video signal generator）**：你可以把它想成「會說 HDMI 方言的假電腦」。顯示器（DUT）要測各種解析度，總不能每次都找一台真的 PC 去改設定；訊號產生器就是一台專門產生標準測試訊號的儀器，你要 4K60 就給 4K60，要 1080p 就給 1080p。Quantum Data 的 882E 是這一行的老面孔，公開 datasheet 載明它的控制介面有三種：RS-232 serial、Ethernet（TCP/IP、FTP、Telnet）、GPIB。
+**訊號產生器（video signal generator）**：你可以把它想成「會說 HDMI 方言的假電腦」。顯示器（DUT）要測各種解析度，總不能每次都找一台真的 PC 去改設定；訊號產生器就是一台專門產生標準測試訊號的儀器，你要 4K60 就給 4K60，要 1080p 就給 1080p。Quantum Data 的 882E 是這一行的老面孔，控制介面有三種：RS-232 serial、Ethernet（TCP/IP、FTP、Telnet）、GPIB[^1]。
 
 **Telnet**：老式遠端登入協定，走 TCP，但跟「裸 TCP」不一樣。它有自己的一套帶內控制語言：任何以 IAC（Interpret As Command，位元組 0xFF）開頭的序列都是控制命令，不是資料。這是 RFC 854 定義的。類比一下：你對講機講話前要先按住通話鍵，IAC 就是那個通話鍵訊號；你把「按住通話鍵」的訊號也當成對白念出來，對方就會聽到一堆怪聲。
 
@@ -165,7 +165,7 @@ class SerialTransport:
 
 ### 3. 思考題
 
-882E 的 datasheet 載明它還支援 GPIB（僅 882 系列）與 browser-based virtual control panel。假設你的 bench 要同時控兩台 generator（一台 Telnet、一台 RS-232），你會把「命令握手」放在 transport 層還是命令層？提示：想想 read-until-prompt 的 prompt 樣式在兩種 transport 上是否相同，以及 timeout 該由誰負責。去翻手上機器的 User Guide 命令列章節，確認 prompt 實際字串與命令終止字元（CR/LF/CRLF）再回答。
+882E 還支援 GPIB（僅 882 系列）與 browser-based virtual control panel[^1]。假設你的 bench 要同時控兩台 generator（一台 Telnet、一台 RS-232），你會把「命令握手」放在 transport 層還是命令層？提示：想想 read-until-prompt 的 prompt 樣式在兩種 transport 上是否相同，以及 timeout 該由誰負責。去翻手上機器的 User Guide 命令列章節，確認 prompt 實際字串與命令終止字元（CR/LF/CRLF）再回答。
 
 ## 參考資料
 
@@ -176,3 +176,5 @@ class SerialTransport:
 - pyserial 官方 API 文件：https://pyserial.readthedocs.io/en/latest/pyserial_api.html
 - Python 3.13 What's New（telnetlib 移除，PEP 594，官方）：https://docs.python.org/3/whatsnew/3.13.html
 - RFC 854 Telnet Protocol Specification（IETF 官方）：https://datatracker.ietf.org/doc/html/rfc854
+
+[^1]: Quantum Data 882E datasheet（PDF 鏡像，非官方，見參考資料）；電腦介面另見 881/882 User Manual p.26（manualsdir 線上版，非官方）。datasheet 頁碼待查證。

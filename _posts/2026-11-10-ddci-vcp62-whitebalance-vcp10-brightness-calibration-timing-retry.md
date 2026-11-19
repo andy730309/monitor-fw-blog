@@ -66,7 +66,7 @@ DDC/CI 1.1 標準（2004 年 10 月 29 日）對時序寫得很具體：
 
 ddcutil 的實作文件補了實務面：它把規則摘要成「送出後等 40–200 ms（依操作而定）」，並提供 --sleep-multiplier 調整、--maxtries 調整嘗試次數上限（write-only 預設 4 次、write-read 10 次、multi-part 8 次，最高可設 15；重試次數是嘗試次數減 1）。
 
-最容易被忽略的一條：setvcp 收到的 I2C 層回應只代表「封包收到了」，不代表「執行完了」。ddcutil 文件明說這一點，所以它的 setvcp 預設會再做一次 getvcp 驗證，--noverify 只是省時間的選項。校正腳本如果寫完 gain 立刻叫 CA-410 量測，可能量到上一輪的畫面。
+最容易被忽略的一條：setvcp 收到的 I2C 層回應只代表「封包收到了」，不代表「執行完了」[^1]。所以 ddcutil 的 setvcp 預設會再做一次 getvcp 驗證，--noverify 只是省時間的選項。校正腳本如果寫完 gain 立刻叫 CA-410 量測，可能量到上一輪的畫面。
 
 ### 修正程式碼：寫入層與 FW 端對稱修正
 
@@ -210,3 +210,5 @@ MCCS 2.2a 規定 14h Select Color Preset 會與 16h/18h/1Ah/6Ch/6Eh/70h 連動�
 2. VESA Display Data Channel Command Interface (DDC/CI) Standard Version 1.1, October 29, 2004。官方清單：VESA Standards 頁（https://vesa.org/vesa-standards/ ，官方）；公開鏡像：https://milek7.pl/ddcbacklight/ddcci.pdf （非官方）。頁碼為該鏡像 PDF 頁序：display 位址 0x6E/6Fh（p.13）、40ms 最小等待（p.22、p.29）、至少重試 3 次（p.25）、checksum 含虛擬 host 位址 0x50（p.27）、null message 長度 80h（p.28）、expander 120ms（p.35）。
 3. ddcutil 官方文件（官方）：Command Overview（https://www.ddcutil.com/commands/）；Performance and Tuning Options（https://www.ddcutil.com/performance_options/ ，40–200ms 摘要、--sleep-multiplier、--maxtries 預設 4/10/8 上限 15）；setvcp（https://www.ddcutil.com/command_setvcp/ ，--noverify 與寫後驗證語意）；vcpinfo 輸出（https://www.ddcutil.com/vcpinfo_output/ ，62＝Audio speaker volume）；References（https://www.ddcutil.com/bibliography/ ，標準清單與 I2C 位址表示法）。
 4. Konica Minolta CA-410 官方 catalog（官方）：https://www.konicaminolta.com/instruments/download/catalog/display/pdf/ca410_catalog_eng.pdf 。RS-232C＋USB 虛擬 COM、基本通訊指令相容 CA-210/310、CA-SDK2、電動零位校正快門、同步偵測功能、CA-VP410A/CA-VP427A 保證精度自 0.0003 cd/m² 起。完整遠端指令表屬授權文件（待查證：需對手上授權手冊核對）。
+
+[^1]: ddcutil 官方文件（見參考資料 3）。網頁文件，章節待查證。

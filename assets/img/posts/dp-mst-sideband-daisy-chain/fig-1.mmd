@@ -1,0 +1,6 @@
+flowchart TB
+    PC["PC（source）<br/>拓樸管理"]
+    A["螢幕 A（branch）<br/>自己的畫面＋總機<br/>sideband 收發"]
+    B["螢幕 B（sink）<br/>第二台"]
+    PC <==>|"DP cable<br/>main link ＋ AUX（控制）"| A
+    A ==>|"DP OUT"| B

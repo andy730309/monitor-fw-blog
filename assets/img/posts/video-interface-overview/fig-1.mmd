@@ -1,0 +1,18 @@
+graph TD
+    VGA["VGA 1987<br/>Analog RGB"] -->|"Passive Adapter"| DVI_I["DVI-I<br/>Digital + Analog"]
+    DVI_I -->|"Passive Adapter"| DVI_D["DVI-D<br/>Digital Only"]
+    DVI_D -->|"Passive Adapter<br/>電氣相容"| HDMI["HDMI 1.x/2.0<br/>TMDS + Audio + CEC"]
+    DP["DisplayPort 1.0+<br/>Packet + AUX"] -->|"DP++ Dual-Mode<br/>Passive Adapter"| HDMI
+    DP -->|"DP++ Dual-Mode<br/>Passive Adapter"| DVI_D
+    USBC["USB-C Connector"] -->|"Alt Mode C/D/E"| DP_Alt["DP Alt Mode"]
+    USBC -->|"Alt Mode (已停更)"| HDMI_Alt["HDMI Alt Mode"]
+    USBC -->|"Thunderbolt 3/4/5"| TBT["Thunderbolt<br/>PCIe + DP Tunneling"]
+    DP_Alt -.->|"不支援 DP++"| HDMI
+    DP_Alt -.->|"需 Active Converter"| HDMI
+    style VGA fill:#ffcccc
+    style DVI_I fill:#ffe0cc
+    style DVI_D fill:#ffe0cc
+    style HDMI fill:#ccffcc
+    style DP fill:#cceeff
+    style USBC fill:#e0ccff
+    style TBT fill:#f0e0ff

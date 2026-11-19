@@ -30,7 +30,7 @@ difficulty: intermediate
 
 機械 bounce 在 ms 等級反覆接點。新手最常犯的錯，是在中斷服務常式（ISR，interrupt service routine）裡看到一個下降緣就 `osd_cursor++`。抖動的十幾個邊緣，就變成十幾次游標移動。
 
-Linux kernel 的 gpio-keys 文件明白寫它「supports debounce」；GPIO_V2 ioctl 文件把語意講得更精準：debounce 是「偵測到邊緣後，線路要維持穩定一段時間才產生事件，事件時間戳記對應 debounce 結束」。關鍵不是「延遲一下再讀」，而是「連續取樣都一致才算數」。
+Linux kernel 的 gpio-keys「supports debounce」[^1]；更精準的語意是：debounce 是「偵測到邊緣後，線路要維持穩定一段時間才產生事件，事件時間戳記對應 debounce 結束」[^2]。關鍵不是「延遲一下再讀」，而是「連續取樣都一致才算數」。
 
 ```c
 /* 示意 Macro 與暫存器，非實際晶片規格 */
@@ -90,7 +90,7 @@ static void nec_on_frame(uint8_t addr, uint8_t cmd, uint8_t addr_inv, uint8_t cm
 }
 ```
 
-長按的學問在 repeat。lirc-dev-intro 文件說：Sanyo 和 NEC 長按時，送的是「較短、沒有 scancode 的訊息」，只表示按著，收到時設 `LIRC_SCANCODE_FLAG_REPEAT`。同一份文件還提醒一個大坑：NEC 沒有 toggle bit（切換位元），所以分不出「一直按著」和「放開再按同一鍵」；RC-5、RC-6 才有 toggle bit，放開再按會反相。
+長按的學問在 repeat。Sanyo 和 NEC 長按時，送的是「較短、沒有 scancode 的訊息」，只表示按著，收到時設 `LIRC_SCANCODE_FLAG_REPEAT`[^3]。還有一個大坑：NEC 沒有 toggle bit（切換位元），所以分不出「一直按著」和「放開再按同一鍵」；RC-5、RC-6 才有 toggle bit，放開再按會反相[^3]。
 
 所以 repeat 要獨立處理：只對連續量（音量、亮度）啟用，而且套用 repeat rate（第一次延遲長一點，之後固定間隔）。電源、輸入源這種 toggle 類的，直接忽略 repeat，不然按一下電源就開關十幾次。repeat rate 的具體數字 kernel 沒給，要查遙控器廠商規格或實測，標待查證。
 
@@ -183,3 +183,7 @@ static void osd_on_value_changed(uint8_t vcp_code, uint16_t value)
 - Linux kernel — GPIO_V2_GET_LINE_IOCTL（官方；debounce_period_us、debounce 軟體模擬、事件 timestamp 對應 debounce 結束）：https://docs.kernel.org/userspace-api/gpio/gpio-v2-get-line-ioctl.html
 
 本文 VCP 定義已對照 VESA MCCS 2.2a 規格頁碼，ddcutil 文件只作交叉參考。scaler 的按鍵/IR 周邊暫存器屬 NDA 範圍，本文一律標示意，不宣稱是真實 RTD/Novatek/MStar 暫存器。
+
+[^1]: Linux kernel — Subsystem drivers using GPIO（gpio-keys，官方，見參考資料）。網頁文件，章節待查證。
+[^2]: Linux kernel — GPIO_V2_GET_LINE_IOCTL（官方，見參考資料）。網頁文件，章節待查證。
+[^3]: Linux kernel — LIRC device interface（lirc-dev-intro，官方，見參考資料）。網頁文件，章節待查證。
