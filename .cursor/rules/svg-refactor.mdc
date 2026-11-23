@@ -1,0 +1,87 @@
+---
+description: 顯示器韌體(Display FW)教學部落格的 SVG 工程圖表診斷、新建與重構規範（支援 GitHub 雙色主題與 Jekyll 排版）
+globs: 
+  - "assets/img/posts/*.svg"
+  - "_posts/*.md"
+alwaysApply: false
+---
+
+# 顯示器韌體部落格 SVG 工程圖表重構規則
+
+當使用者要求「重構現有 SVG」或「為草稿文章建立新 SVG」時，請讀取對應的 Markdown 文章段落與現有 SVG 程式碼，並嚴格遵守以下規範輸出。
+
+## 一、 工程語意診斷與圖表升維
+在輸出 SVG 程式碼前，先以 2～3 句話簡述診斷結果與修改重點，並將內容轉換為最適合的工程圖表類型（不侷限於原本的流程圖）：
+1. **硬體波形時序圖 (Timing Diagram)**：適用於 Panel 上電序列（`VDD` / `eDP` / `BL_EN`）、`VSYNC`/`vblank` DMA commit、`HPD` 短脈衝、I2C/SPI 準位與延遲時間（如 `T1`~`T4`）。必須畫出明確的高低準位波形、時間軸與延遲區間標註。
+2. **通訊交握時序圖 (Sequence Diagram)**：適用於 DDC/CI I2C 讀寫、DP AUX Channel、HDCP 認證、USB PD VDM 握手。建立 Host（Source）與 Sink（Scaler/Monitor）生命線，清楚標示 Request 與 ACK/NACK 順序。
+3. **狀態機圖 (State Machine)**：適用於 LTTPR 訓練狀態、Power Saving 模式、OSD 選單狀態、按鍵 Debounce。使用圓角矩形代表狀態，標註觸發事件與異常降級/超時回退路徑。
+4. **系統方塊與管線圖 (Block / Pipeline Diagram)**：適用於 Scaler 內部資料流、T-CON/Panel/EEPROM 分工、OSD 混合管線、MCU ISR 與 Main Loop 架構。需明確區分資料流（實線）與控制/中斷訊號（虛線）。
+5. **優化版流程圖 (Enhanced Flowchart)**：適用於純演算法邏輯或產線自動化腳本（如 3D LUT 插值、CA-410 校正重試分類）。
+
+## 二、 版面尺寸與字型系統規範
+- **響應式設定**：`<svg>` 標籤嚴禁寫死 `width` 與 `height` 屬性，必須使用 `viewBox="0 0 [寬] [高]"` 搭配 `style="width: 100%; height: auto; max-width: 820px; display: block; margin: 1.5rem auto;"`。
+- **防文字截斷**：畫布四周保留至少 `20px` 邊距（Padding），預留充足文字框寬度，避免中英文混排在手機或桌面版面溢出框線。
+- **字型規範**：
+  - 中文與說明文字：`font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif; font-size: 14px;`
+  - 韌體術語、暫存器、腳位、時間參數（如 `0xA0`、`HPD`、`vblank`、`10ms`）：套用 `.mono` 類別，使用 `font-family: 'JetBrains Mono', monospace; font-size: 13px;`
+- **線條與圓角**：節點方框統一 `rx="6"`、`stroke-width="1.5"`；主訊號線 `stroke-width="2"`，輔助或控制虛線 `stroke-dasharray="4 4"`。
+
+## 三、 GitHub 雙主題自動適配（必須內嵌 `<style>`）
+嚴禁在圖形元素上寫死色碼（Hex），所有 `fill` 與 `stroke` 必須引用 CSS 變數，並在每個 `<svg>` 頂部內嵌以下 `<style>` 區塊：
+
+```xml
+<style>
+  svg {
+    --bg-canvas: transparent;
+    --bg-node: #f4f6f8;
+    --bg-code: #f6f8fa;
+    --bg-highlight: #fff3bf;
+    --text-primary: #1f2328;
+    --text-secondary: #656d76;
+    --accent-primary: #0969da;
+    --border-color: #d8dee4;
+    --status-ok: #2da44e;
+    --status-warn: #cf222e;
+    font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    svg {
+      --bg-node: #161b22;
+      --bg-code: #161b22;
+      --bg-highlight: #5c4a00;
+      --text-primary: #e6e8eb;
+      --text-secondary: #9aa4af;
+      --accent-primary: #58a6ff;
+      --border-color: #2d333b;
+      --status-ok: #2da44e;
+      --status-warn: #f85149;
+    }
+  }
+  :is(.dark, [data-theme="dark"]) svg {
+    --bg-node: #161b22;
+    --bg-code: #161b22;
+    --bg-highlight: #5c4a00;
+    --text-primary: #e6e8eb;
+    --text-secondary: #9aa4af;
+    --accent-primary: #58a6ff;
+    --border-color: #2d333b;
+    --status-ok: #2da44e;
+    --status-warn: #f85149;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+</style>
+```
+
+### 色彩語意使用準則
+- **節點底色**：`fill="var(--bg-node)"`、`stroke="var(--border-color)"`
+- **主要文字 / 標題**：`fill="var(--text-primary)"`
+- **次要標註 / 軸線標籤**：`fill="var(--text-secondary)"`
+- **主訊號線 / 正常資料流 / 當前狀態**：`stroke="var(--accent-primary)"` 或 `fill="var(--accent-primary)"`
+- **成功 / ACK / 訓練完成**：`stroke="var(--status-ok)"` 或 `fill="var(--status-ok)"`
+- **異常 / NACK / Timeout / Fallback 路徑**：`stroke="var(--status-warn)"` 或 `fill="var(--status-warn)"`
+- **關鍵區間底色（如 `vblank` 或關鍵暫存器強調）**：`fill="var(--bg-highlight)"`
+
+## 四、 SVG 程式碼整潔度要求
+- 移除原本 `mermaid-cli` 產生的所有無用 `<style>`、冗長 `id` 與多餘巢狀標籤。
+- 箭頭與端點標記統一定義在 `<defs><marker id="arrow" ...>` 中重複使用。
+- 使用語意化的 `<g id="...">` 將各邏輯區塊分組（例如 `<g id="waveform-vdd">`、`<g id="state-training">`），方便後續手動微調。
