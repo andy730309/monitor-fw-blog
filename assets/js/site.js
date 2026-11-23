@@ -36,4 +36,49 @@
     });
     pre.parentElement.style.position = "relative"; pre.parentElement.appendChild(b);
   });
+
+  // Inline post figures so the SVG <style> can see html[data-theme].
+  // An <img> SVG is a separate document: OS dark mode still works via
+  // prefers-color-scheme, but the manual toggle does not. If fetch fails,
+  // the original image stays (readable light palette).
+  document.querySelectorAll(".post-content img").forEach(function (img, index) {
+    var src = img.getAttribute("src") || "";
+    if (src.indexOf("/assets/img/posts/") === -1 || !/\.svg([?#]|$)/i.test(src)) return;
+    fetch(src).then(function (res) {
+      if (!res.ok) throw new Error(String(res.status));
+      return res.text();
+    }).then(function (text) {
+      if (!img.isConnected) return;
+      var parsed = new DOMParser().parseFromString(text, "image/svg+xml");
+      if (!parsed || parsed.querySelector("parsererror")) return;
+      var svg = parsed.documentElement;
+      if (!svg || svg.localName !== "svg") return;
+      var prefix = "fwfig" + index + "_";
+      var ids = Object.create(null);
+      svg.querySelectorAll("[id]").forEach(function (el) {
+        var oldId = el.getAttribute("id");
+        var newId = prefix + oldId;
+        ids[oldId] = newId;
+        el.setAttribute("id", newId);
+      });
+      var rewrite = function (value) {
+        return value.replace(/url\(\s*#([^)]+?)\s*\)/g, function (_, id) {
+          return "url(#" + (ids[id] || id) + ")";
+        }).replace(/^#(.+)$/, function (_, id) {
+          return "#" + (ids[id] || id);
+        });
+      };
+      svg.querySelectorAll("*").forEach(function (el) {
+        for (var i = 0; i < el.attributes.length; i++) {
+          var attr = el.attributes[i];
+          if (!attr.value || attr.value.indexOf("#") === -1) continue;
+          var next = rewrite(attr.value);
+          if (next !== attr.value) el.setAttribute(attr.name, next);
+        }
+      });
+      svg.setAttribute("role", "img");
+      if (img.alt) svg.setAttribute("aria-label", img.alt);
+      img.replaceWith(svg);
+    }).catch(function () {});
+  });
 })();
